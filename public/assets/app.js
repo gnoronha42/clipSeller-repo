@@ -126,17 +126,23 @@
         '</div>';
     } else {
       var token = encodeURIComponent(localStorage.getItem(TOKEN_KEY) || '');
+      var balanceLabel = u.role === 'admin' ? '∞' : '…';
       root.innerHTML = '' +
         '<div class="app-shell">' +
           '<div class="app-header">' +
             '<div class="app-brand"><img src="/img/IMG_9841.PNG" alt="ClipSeller" /><span>ClipSeller</span></div>' +
             '<div class="app-actions">' +
-              '<span>' + u.email + '</span>' +
+              '<a id="creditsLink" href="/credits.html" class="credits-pill" title="Comprar / ver consumo">' +
+                '<span class="cp-label">Créditos</span><span class="cp-value" id="hdrBalance">' + balanceLabel + '</span>' +
+              '</a>' +
+              '<span class="user-email">' + u.email + '</span>' +
               '<button id="logoutBtn">Sair</button>' +
             '</div>' +
           '</div>' +
           '<iframe class="app-frame" src="/clipseller-html?token=' + token + '" allow="clipboard-write; clipboard-read"></iframe>' +
         '</div>';
+
+      if (u.role !== 'admin') refreshHeaderBalance();
     }
 
     document.getElementById('logoutBtn').addEventListener('click', function () {
@@ -144,6 +150,23 @@
       renderLogin();
     });
   }
+
+  async function refreshHeaderBalance() {
+    var el = document.getElementById('hdrBalance');
+    if (!el) return;
+    var r = await api('/api/credits/me');
+    if (r.ok) el.textContent = (r.data.balance || 0).toLocaleString('pt-BR');
+  }
+
+  // Escuta atualizações de saldo enviadas pelo iframe ClipSeller após débito.
+  window.addEventListener('message', function (ev) {
+    if (!ev.data || ev.data.type !== 'cs:balance') return;
+    var el = document.getElementById('hdrBalance');
+    if (!el) return;
+    if (typeof ev.data.balance === 'number') {
+      el.textContent = ev.data.balance.toLocaleString('pt-BR');
+    }
+  });
 
   async function init() {
     var token = localStorage.getItem(TOKEN_KEY);

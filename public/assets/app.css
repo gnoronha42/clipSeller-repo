@@ -119,6 +119,17 @@ a:hover { text-decoration: underline; }
   border-radius: 8px; padding: 6px 12px; cursor: pointer;
 }
 .app-actions button:hover { color: var(--text); border-color: var(--accent-2); }
+.app-actions .user-email { color: var(--text-dim); font-size: 13px; }
+.credits-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px; border-radius: 999px;
+  background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(124,58,237,0.08));
+  border: 1px solid rgba(167,139,250,0.45); color: var(--text);
+  text-decoration: none; font-size: 13px; transition: transform .12s, border-color .12s;
+}
+.credits-pill:hover { transform: translateY(-1px); border-color: var(--accent-2); text-decoration: none; }
+.credits-pill .cp-label { color: var(--text-dim); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+.credits-pill .cp-value { font-weight: 700; color: var(--accent-2); }
 .app-frame { flex: 1; border: 0; background: var(--bg); width: 100%; }
 
 /* Tela de "sem acesso" */

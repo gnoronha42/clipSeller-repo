@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import authRoutes from './src/auth/routes.js';
 import adminRoutes from './src/users/adminRoutes.js';
+import creditsRoutes, { webhookRouter as creditsWebhookRouter } from './src/credits/routes.js';
 import { proxyRouter } from './src/proxy/routes.js';
 import { clipsellerHtmlRouter } from './src/clipseller/htmlRoute.js';
 import { runMigrations } from './src/db/migrate.js';
@@ -34,6 +35,9 @@ app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/credits', creditsRoutes);
+// Webhook MP é público: /api/credits/webhook (montado SEM auth)
+app.use('/api/credits', creditsWebhookRouter);
 
 // Estáticos: imagens, login, set-password, forgot
 app.use(express.static(resolve(__dirname, 'public'), {
@@ -44,7 +48,7 @@ app.use(express.static(resolve(__dirname, 'public'), {
 }));
 
 // Fallback SPA simples: rotas client-side sem extensão caem no index.html
-app.get(/^\/(?!api|cs-proxy|clipseller-html|img|assets|set-password|forgot|login).*$/, (_req, res) => {
+app.get(/^\/(?!api|cs-proxy|clipseller-html|img|assets|set-password|forgot|login|credits).*$/, (_req, res) => {
   res.sendFile(resolve(__dirname, 'public', 'index.html'));
 });
 

@@ -59,18 +59,105 @@ const BRIDGE = `
     return _nativeFetch(input, init);
   };
 
-  // No standalone não há cobrança de créditos por geração.
-  window.chargeCreditsBackend = async function () { return true; };
-  window.__cs_refundTicket = function () {};
+  // ────────────────────────────────────────────────────────────────
+  // Cobrança de créditos via backend standalone (/api/credits/charge)
+  // ────────────────────────────────────────────────────────────────
+  function csToken() {
+    try { return (window.parent && window.parent.localStorage && window.parent.localStorage.getItem('cs_token')) || ''; }
+    catch (_) { return ''; }
+  }
 
-  // Mantém o saldo "infinito" só visualmente.
-  try { window.credits = 99999; } catch (_) {}
-  document.addEventListener('DOMContentLoaded', function () {
+  // Mapeia o featureKey legado do HTML para a tabela standalone (clipseller.novo.*)
+  var FEATURE_MAP = {
+    'clipseller.outros-3': 'clipseller.novo.img-basico',
+    'clipseller.outros-5': 'clipseller.novo.img-basico',
+    'clipseller.moda-3':   'clipseller.novo.moda-look',
+    'clipseller.moda-5':   'clipseller.novo.moda-look',
+    'clipseller.regen':    'clipseller.novo.regen',
+    'clipseller.foto-inspirada': 'clipseller.novo.inspirada',
+    'clipseller.edicao-livre':   'clipseller.novo.edicao-livre',
+    'clipseller.trocar-modelo':  'clipseller.novo.provador',
+    'clipseller.video-5s':       'clipseller.novo.vid-prod-5s',
+    'clipseller.video-10s':      'clipseller.novo.vid-prod-10s',
+    'clipseller.copy':           'clipseller.novo.titulo',
+    'clipseller.criativos':      'clipseller.novo.img-basico',
+  };
+  function mapFeature(key) { return FEATURE_MAP[key] || key || 'clipseller.novo.img-basico'; }
+
+  window.__cs_lastTxId = null;
+
+  window.chargeCreditsBackend = async function (opts) {
+    opts = opts || {};
+    var featureKey = mapFeature(opts.featureKey || opts.feature);
+    var token = csToken();
+    if (!token) {
+      alert('Sessão expirada. Faça login novamente.');
+      try { window.top.location.href = '/'; } catch (_) {}
+      return false;
+    }
     try {
-      var credn = document.getElementById('credn');
-      if (credn) credn.textContent = '∞';
+      var r = await fetch('/api/credits/charge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ featureKey: featureKey, description: opts.description || null }),
+      });
+      var data = {};
+      try { data = await r.json(); } catch (_) {}
+      if (r.status === 402) {
+        alert('Créditos insuficientes (saldo: ' + (data.balance || 0) + ').\\n\\nCompre mais em "Meus créditos".');
+        try { window.top.location.href = '/credits.html'; } catch (_) {}
+        return false;
+      }
+      if (!r.ok) {
+        alert(data.error || 'Não foi possível debitar créditos.');
+        return false;
+      }
+      window.__cs_lastTxId = data.transactionId || null;
+      if (typeof data.balance === 'number') {
+        try { window.credits = data.balance; var c = document.getElementById('credn'); if (c) c.textContent = data.balance.toLocaleString('pt-BR'); } catch (_) {}
+        try { window.parent.postMessage({ type: 'cs:balance', balance: data.balance }, '*'); } catch (_) {}
+      } else if (data.admin) {
+        try { var c = document.getElementById('credn'); if (c) c.textContent = '∞'; } catch (_) {}
+      }
+      return true;
+    } catch (err) {
+      console.error('[chargeCreditsBackend]', err);
+      alert('Erro de conexão ao debitar créditos.');
+      return false;
+    }
+  };
+
+  window.__cs_refundTicket = async function () {
+    var txId = window.__cs_lastTxId;
+    if (!txId) return;
+    var token = csToken();
+    if (!token) return;
+    try {
+      await fetch('/api/credits/refund', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ transactionId: txId }),
+      });
+      window.__cs_lastTxId = null;
     } catch (_) {}
-  });
+  };
+
+  // Atualiza o saldo no header do HTML a cada 20s e no DOMContentLoaded.
+  async function refreshBalance() {
+    var token = csToken();
+    if (!token) return;
+    try {
+      var r = await fetch('/api/credits/me', { headers: { Authorization: 'Bearer ' + token } });
+      if (!r.ok) return;
+      var data = await r.json();
+      window.credits = data.balance;
+      var c = document.getElementById('credn');
+      if (c) c.textContent = (data.balance || 0).toLocaleString('pt-BR');
+      try { window.parent.postMessage({ type: 'cs:balance', balance: data.balance }, '*'); } catch (_) {}
+    } catch (_) {}
+  }
+  document.addEventListener('DOMContentLoaded', refreshBalance);
+  setInterval(refreshBalance, 20000);
 })();
 </script>
 `;

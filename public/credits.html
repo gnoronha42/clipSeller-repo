@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Meus créditos — ClipSeller</title>
+  <link rel="icon" href="/img/IMG_9841.PNG" type="image/png" />
+  <link rel="stylesheet" href="/assets/app.css" />
+  <link rel="stylesheet" href="/assets/credits.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-brand">
+      <a href="/" style="display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none;">
+        <img src="/img/IMG_9841.PNG" alt="ClipSeller" />
+        <span>ClipSeller</span>
+      </a>
+    </div>
+    <div class="app-actions">
+      <a href="/" class="btn-ghost">← Voltar ao estúdio</a>
+      <span id="userEmail" class="user-email"></span>
+      <button id="logoutBtn">Sair</button>
+    </div>
+  </header>
+
+  <main class="credits-page">
+    <section class="credits-hero">
+      <div>
+        <h1>Meus créditos</h1>
+        <p class="muted">Cada geração de imagem, vídeo ou texto consome créditos. Recarregue quando precisar.</p>
+      </div>
+      <div class="balance-card">
+        <span class="balance-label">Saldo atual</span>
+        <span id="balance" class="balance-value">…</span>
+        <span class="balance-sub" id="balanceAdmin"></span>
+      </div>
+    </section>
+
+    <div id="bannerPaymentSuccess" class="banner banner-success" style="display:none;">
+      Pagamento aprovado! Em alguns segundos os créditos cairão na sua conta — esta página atualiza sozinha.
+    </div>
+    <div id="bannerPaymentPending" class="banner banner-pending" style="display:none;">
+      Pagamento pendente. Assim que o Mercado Pago confirmar, os créditos serão liberados automaticamente.
+    </div>
+    <div id="bannerPaymentFailure" class="banner banner-error" style="display:none;">
+      Pagamento não foi concluído. Você pode tentar novamente.
+    </div>
+
+    <section class="credits-section">
+      <h2>Comprar créditos</h2>
+      <div id="packages" class="packages-grid">Carregando pacotes…</div>
+
+      <details class="custom-credits">
+        <summary>Quero um valor avulso (mín. 100 créditos)</summary>
+        <div class="custom-row">
+          <label>Quantidade
+            <input id="customCredits" type="number" min="100" step="50" placeholder="ex.: 500" />
+          </label>
+          <div class="custom-price"><span id="customPrice">—</span></div>
+          <button id="buyCustomBtn" class="btn-primary">Comprar avulso</button>
+        </div>
+        <p class="muted small" id="avulsoNote"></p>
+      </details>
+    </section>
+
+    <section class="credits-section">
+      <h2>Tabela de consumo</h2>
+      <p class="muted">Quanto cada geração custa em créditos.</p>
+      <div id="featureCosts" class="costs-grid">Carregando…</div>
+    </section>
+
+    <section class="credits-section">
+      <h2>Histórico</h2>
+      <div id="transactions" class="tx-list">Carregando…</div>
+    </section>
+  </main>
+
+  <script src="/assets/credits.js" defer></script>
+</body>
+</html>
