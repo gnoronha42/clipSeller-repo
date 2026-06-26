@@ -1,0 +1,20 @@
+[Unit]
+Description=ClipSeller standalone (Node.js)
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=clipseller
+Group=clipseller
+WorkingDirectory=/opt/clipseller-standalone
+EnvironmentFile=/opt/clipseller-standalone/.env
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

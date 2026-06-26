@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClipSeller · Canvas de Campanha</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f4f4f2;--paper:#fff;--ink:#16181d;--mut:#6b7079;--mut2:#9aa0aa;--line:#e6e6e2;--line2:#efefec;
+    --orange:#ff4d1c;--purple:#7b2fff;--green:#1faf6b;--blue:#2b6fff;--wire:#c2c2bb;--shadow:0 1px 2px rgba(16,18,29,.05),0 10px 26px rgba(16,18,29,.08)}
+  body.dark{--bg:#07080a;--paper:#121317;--ink:#f0f0f2;--mut:#9aa0aa;--mut2:#6b7079;--line:#26282e;--line2:#1d1f24;
+    --wire:#3a3d45;--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.5)}
+  body.dark .stage{background:radial-gradient(1.4px 1.4px at 20px 20px,#3a3d47 1.4px,transparent 0),var(--bg)}
+  body.dark .cred{background:#1a1410}body.dark .field input,body.dark .field input:focus{background:#1a1c21;color:var(--ink)}body.dark .secnote{background:#16130f}
+  body.dark .node .media{background:linear-gradient(135deg,#191b20,#0f1014)}body.dark .dropwrap .big{background:linear-gradient(135deg,#1a1c21,#121317)}
+  body.dark .pop .opt:hover,body.dark .rail button:hover,body.dark .goal:hover{background:#1c1e24}body.dark .tool{background:#16181c}
+  body.dark .pop .opt .pic{background:#2a2d34;color:var(--ink)}body.dark .b-more{background:#2a2d34}body.dark .kb,body.dark .btn.sec{background:#1a1c21}
+  *{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}
+  body{background-color:var(--bg);background-image:radial-gradient(1.3px 1.3px at 20px 20px,#d6d6d2 1.3px,transparent 0);background-size:22px 22px;color:var(--ink);font-family:'Outfit',sans-serif;overflow:hidden}
+  body.dark{background-image:radial-gradient(1.3px 1.3px at 20px 20px,#33363f 1.3px,transparent 0)}
+  .app{display:grid;grid-template-columns:208px 1fr 340px;grid-template-rows:52px 1fr;height:100vh;transition:grid-template-columns .2s}
+  .app.nopanel{grid-template-columns:208px 1fr 0}.app.nopanel .agent{display:none}
+  .app.sidehide{grid-template-columns:0 1fr 340px}.app.sidehide.nopanel{grid-template-columns:0 1fr 0}.app.sidehide .side{display:none}
+  .top{grid-column:1/-1;background:var(--paper);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 18px;z-index:60}
+  .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--orange),#ff7a3c);display:grid;place-items:center;color:#fff;font-weight:700;font-size:14px}
+  .top h1{font-family:'Bebas Neue';font-size:21px;letter-spacing:1px}
+  .top .tab{font-size:12px;color:var(--mut);border:1px solid var(--line);border-radius:8px;padding:5px 10px;display:flex;gap:6px;align-items:center}
+  .top .dot{width:7px;height:7px;border-radius:50%;background:var(--mut2)}.top .dot.on{background:var(--green)}
+  .top .right{margin-left:auto;display:flex;gap:8px}
+  .kb{font-size:11.5px;color:var(--mut);border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:6px 10px;cursor:pointer}.kb:hover{border-color:var(--orange);color:var(--ink)}
+  .cred{font-size:12.5px;font-weight:600;color:var(--ink);border:1px solid var(--line);background:#fffaf3;border-radius:8px;padding:6px 11px;cursor:pointer;display:flex;align-items:center;gap:5px}.cred b{color:var(--orange)}.cred:hover{border-color:var(--orange)}
+  .stage{grid-column:2;grid-row:2;position:relative;overflow:hidden;cursor:grab;background:radial-gradient(1.2px 1.2px at 20px 20px,#dededa 1.2px,transparent 0),var(--bg);background-size:22px 22px}
+  .side{grid-column:1;grid-row:2;background:var(--paper);border-right:1px solid var(--line);padding:8px 10px 14px;overflow:auto;display:flex;flex-direction:column;gap:1px}
+  .side .sgrp{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut2);font-weight:700;padding:14px 10px 5px}
+  .side .si{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;transition:background .12s,color .12s}
+  .side .si svg{width:17px;height:17px;flex:none;color:var(--mut)}
+  .side .si:hover{background:var(--bg)}.side .si.on{background:rgba(255,77,28,.12);color:var(--orange)}.side .si.on svg{color:var(--orange)}
+  .side .si.soon{opacity:.7}.side .si .tag{margin-left:auto;font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--mut2);border:1px solid var(--line);border-radius:6px;padding:2px 5px}
+  .station{grid-column:2;grid-row:2;display:none;background:var(--bg);z-index:35;overflow:auto}.station.on{display:grid;place-items:center;align-content:start}
+  .insp{width:100%;max-width:720px;padding:34px 26px;margin:0 auto}
+  .insp-head h2{font-size:22px;margin:0 0 4px}.insp-head p{color:var(--mut);font-size:13px;line-height:1.5;margin:0 0 18px}
+  .insp-up{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px}
+  .insp-tile{position:relative;aspect-ratio:1;border:1.5px dashed var(--line);border-radius:14px;overflow:hidden;cursor:pointer;display:block;background:var(--paper)}.insp-tile:hover{border-color:var(--orange)}
+  .insp-tile input{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2}
+  .insp-ph{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--mut);font-size:13px;font-weight:600;text-align:center}.insp-ph small{color:var(--mut2);font-weight:400;font-size:11px}.insp-ph svg{width:26px;height:26px;color:var(--mut2)}
+  .insp input#inspName,.insp input#inspExtra{width:100%;border:1px solid var(--line);border-radius:9px;padding:11px;font-family:inherit;font-size:13px;background:var(--paper);color:var(--ink);margin-bottom:9px}.insp input:focus{outline:none;border-color:var(--orange)}
+  .insp-out{margin-top:14px}.insp-load{display:flex;align-items:center;gap:12px;color:var(--mut);font-size:13px;padding:14px}
+  .insp-result img{width:100%;border-radius:14px;border:1px solid var(--line);display:block}.insp-actions{display:flex;gap:9px;margin-top:12px;justify-content:center}
+  .ibtn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:11px;padding:10px 18px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:transform .14s,filter .14s,border-color .14s,color .14s}.ibtn svg{width:15px;height:15px}
+  .ibtn.dl{background:var(--orange);color:#fff;box-shadow:0 6px 16px rgba(255,77,28,.28)}.ibtn.dl:hover{filter:brightness(1.06);transform:translateY(-1px)}
+  .ibtn.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}.ibtn.alt:hover{border-color:var(--orange);color:var(--orange)}
+  .insp select{width:100%;border:1px solid var(--line);border-radius:9px;padding:11px;font-family:inherit;font-size:13px;background:var(--paper);color:var(--ink);margin-bottom:9px;cursor:pointer}
+  .stage.grab{cursor:grabbing}
+  #world{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
+  #wires{position:absolute;top:0;left:0;pointer-events:none;overflow:visible}
+  .node{position:absolute;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:visible;cursor:pointer;user-select:none}
+  .node .inner{border-radius:14px;overflow:hidden}
+  .node .media{position:relative;overflow:hidden;background:linear-gradient(135deg,#fafafa,#eeeee9);display:grid;place-items:center}
+  .node .media img,.node .media video{width:100%;height:100%;object-fit:cover;display:block}
+  .node .lab{padding:8px 11px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:6px}
+  .node .lab small{color:var(--mut2);font-weight:400;font-size:10px}
+  .spin{width:24px;height:24px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--orange);animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+  .pend{font-size:11px;color:var(--mut2);display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;padding:8px}
+  .nimg.sel,.nvid.sel{border-color:var(--green);box-shadow:0 0 0 2px rgba(31,175,107,.4)}
+  .badge{position:absolute;top:8px;left:8px;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600;z-index:2}
+  .badge.model{background:rgba(123,47,255,.92);color:#fff}.badge.vid{background:rgba(31,175,107,.92);color:#fff}.badge.cnt{background:rgba(22,24,29,.78);color:#fff;left:auto;right:8px}
+  .okmark{position:absolute;top:7px;right:7px;width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;display:none;place-items:center;font-size:12px;z-index:3}
+  .node.sel .okmark{display:grid}
+  .hint{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);background:rgba(22,24,29,.8);color:#fff;font-size:9.5px;padding:3px 9px;border-radius:20px;white-space:nowrap;opacity:0;transition:.15s;z-index:3;pointer-events:none}.node:hover .hint{opacity:1}
+  .acts{display:flex;flex-direction:column;gap:6px;padding:8px;border-top:1px solid var(--line2)}
+  .acts button{border:none;border-radius:9px;padding:11px 0;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Outfit'}
+  .acts .b-dl{background:linear-gradient(135deg,var(--purple),#9d5cff);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px}
+  .acts .b-more{background:#16181d;color:#fff;font-weight:700}.acts .b-more:hover{background:#000}
+  .port{position:absolute;left:-8px;top:calc(50% - 7px);width:14px;height:14px;border-radius:50%;background:var(--paper);border:2px solid var(--wire);z-index:4}
+  .rail{position:absolute;left:14px;top:14px;display:flex;flex-direction:column;gap:6px;z-index:25;background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:8px;box-shadow:var(--shadow)}
+  .rail button{width:46px;height:46px;border:none;background:transparent;border-radius:10px;cursor:pointer;font-size:17px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:var(--ink)}
+  .rail button:hover{background:#f3f3f0}.rail button small{font-size:8px;color:var(--mut)}
+  .rail .new{background:linear-gradient(135deg,var(--orange),#ff7a3c);color:#fff}.rail .new small{color:#fff}
+  .rail .sep{height:1px;background:var(--line);margin:3px 6px}
+  .tip{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:6px 14px;font-size:11.5px;color:var(--mut);box-shadow:var(--shadow);z-index:20}
+  .pop{position:fixed;z-index:60;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 50px rgba(16,18,29,.22);width:240px;padding:11px;display:none}
+  .pop h4{font-size:12.5px;margin:2px 4px 9px;color:var(--mut)}
+  .pop .opt{display:flex;align-items:center;gap:10px;border-radius:9px;padding:9px 10px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.13s}
+  .pop .opt:hover{background:#f5f5f2}.pop .opt.dim{opacity:.45;cursor:default}.pop .opt.dim:hover{background:transparent}
+  .pop .opt .pic{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-size:13px;flex:none;background:#f3f3f0}
+  .pop .opt.vid .pic{background:rgba(123,47,255,.12)}.pop .opt.ap .pic{background:rgba(31,175,107,.12)}
+  .pop .edit{display:flex;gap:6px;margin-top:6px}.pop .edit input{flex:1;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:12px;font-family:inherit}
+  .pop .edit button{border:none;background:var(--orange);color:#fff;border-radius:8px;padding:0 12px;font-weight:600;cursor:pointer}
+  .pop .back{font-size:11px;color:var(--mut2);cursor:pointer;margin:0 4px 6px;display:inline-block}
+  .lightbox{position:fixed;inset:0;background:rgba(10,11,14,.82);z-index:80;display:none;place-items:center;padding:30px;cursor:zoom-out}.lightbox.on{display:grid}.lightbox img,.lightbox video{max-width:92vw;max-height:90vh;border-radius:12px}
+  .center{grid-column:2;grid-row:2;display:grid;place-items:center;padding:24px}
+  .card-c{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:var(--shadow);width:560px;max-width:94%}
+  .dropwrap{background:var(--paper);border:2px dashed var(--line);border-radius:18px;text-align:center;cursor:pointer;padding:46px;width:560px;max-width:94%;box-shadow:var(--shadow)}.dropwrap:hover{border-color:var(--orange)}
+  .dropwrap .big{width:66px;height:66px;border-radius:17px;margin:0 auto 14px;display:grid;place-items:center;font-size:28px;background:linear-gradient(135deg,#fff,#f1f1ee);border:1px solid var(--line)}
+  .dropwrap strong{font-size:17px}.dropwrap p{color:var(--mut);font-size:12.5px;margin-top:6px}
+  .card-c h3{font-size:16px;margin-bottom:4px}.card-c p{font-size:12.5px;color:var(--mut);margin-bottom:14px;line-height:1.5}
+  .thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+  .thumb{position:relative;width:92px;height:92px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+  .thumb img{width:100%;height:100%;object-fit:cover}
+  .thumb button{position:absolute;top:4px;right:4px;width:22px;height:22px;border:none;border-radius:50%;background:rgba(22,24,29,.78);color:#fff;cursor:pointer;font-size:13px;line-height:1}
+  .addmore{width:92px;height:92px;border:2px dashed var(--line);border-radius:12px;display:grid;place-items:center;font-size:24px;color:var(--mut2);cursor:pointer}.addmore:hover{border-color:var(--orange);color:var(--orange)}
+  .rowbtns{display:flex;gap:10px;align-items:center}
+  .field{margin-bottom:11px}.field label{font-size:11px;font-weight:600;display:block;margin-bottom:5px}
+  .field input{width:100%;border:1px solid var(--line);border-radius:9px;padding:11px;font-family:inherit;font-size:13px;background:#fafafa;color:var(--ink)}.field input:focus{outline:none;border-color:var(--orange);background:#fff}
+  .secnote{font-size:11px;color:var(--mut2);line-height:1.5;background:#faf8f6;border:1px dashed var(--line);border-radius:9px;padding:10px;margin:4px 0 14px}.secnote b{color:var(--orange)}
+  .goals{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:6px}
+  .goal{border:1px solid var(--line);border-radius:14px;padding:16px 12px;cursor:pointer;text-align:center;transition:.15s}.goal:hover{border-color:var(--orange);background:#fff;transform:translateY(-2px)}
+  .goal .gi{font-size:24px;margin-bottom:7px}.goal b{font-size:13.5px;display:block}.goal small{font-size:10.5px;color:var(--mut);display:block;margin-top:4px;line-height:1.35}
+  .prev{width:62px;height:62px;border-radius:11px;object-fit:cover;border:1px solid var(--line);float:right;margin-left:12px}
+  .btn{border:none;border-radius:10px;padding:12px 18px;font-family:'Outfit';font-weight:600;font-size:13.5px;cursor:pointer}.btn.acc{background:linear-gradient(135deg,var(--orange),#ff7a3c);color:#fff;box-shadow:0 8px 20px rgba(255,77,28,.28)}
+  .btn.sec{background:var(--paper);border:1px solid var(--line);color:var(--mut)}
+  #file{display:none}
+  .agent{grid-column:3;grid-row:2;background:var(--paper);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+  .agent .ah{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px;flex:none}
+  .agent .ah .av{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--purple),#9d5cff);display:grid;place-items:center;color:#fff;font-size:12px}
+  .agent .ah b{font-size:13px}.agent .ah small{display:block;color:var(--mut2);font-size:10px}
+  .log{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:9px;min-height:0}
+  .entry{animation:fade .3s ease}@keyframes fade{from{opacity:0}to{opacity:1}}
+  .msg{font-size:12px;line-height:1.5}.msg.think{color:var(--mut)}
+  .tool{display:flex;align-items:center;gap:8px;background:#f7f7f4;border:1px solid var(--line);border-radius:9px;padding:7px 9px;font-size:11px}
+  .tool .ti{width:18px;height:18px;border-radius:5px;display:grid;place-items:center;font-size:10px;flex:none}
+  .ti.r{background:rgba(43,111,255,.12);color:var(--blue)}.ti.g{background:rgba(255,77,28,.12);color:var(--orange)}.ti.v{background:rgba(123,47,255,.12);color:var(--purple)}.ti.k{background:rgba(31,175,107,.12);color:var(--green)}
+  .tool code{font-family:ui-monospace,monospace;font-size:10px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tool .st{margin-left:auto;font-size:9.5px;font-weight:700;flex:none}.st.done{color:var(--green)}.st.run{color:var(--orange)}.st.fail{color:#c2410c}
+  .agent .foot{padding:10px 13px;border-top:1px solid var(--line);font-size:10.5px;color:var(--mut2);display:flex;align-items:center;gap:7px;flex:none}.agent .foot .d{width:6px;height:6px;border-radius:50%;background:var(--green)}
+  .err{background:#fff4f1;border:1px solid #ffd9cc;color:#c2410c;border-radius:9px;padding:10px;font-size:11.5px;line-height:1.5}
+  .titwrap{position:fixed;inset:0;z-index:70;background:rgba(7,8,10,.5);display:none;place-items:center;padding:20px}.titwrap.on{display:grid}
+  .titcard{background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 70px rgba(16,18,29,.35);width:600px;max-width:96%;max-height:88vh;overflow:auto;padding:22px 22px 14px;position:relative}
+  .titcard h3{font-size:17px;margin:0 30px 2px 0}.titcard .sub{font-size:12px;color:var(--mut);margin-bottom:16px}
+  .titclose{position:absolute;top:14px;right:14px;border:none;background:transparent;color:var(--mut);font-size:18px;cursor:pointer;line-height:1}
+  .titrow{border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin-bottom:9px;background:var(--bg)}
+  .titrow .k{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:700;margin-bottom:5px}.titrow .v{font-size:13.5px;line-height:1.5}
+  .titcopy{float:right;border:1px solid var(--line);background:transparent;color:var(--mut);border-radius:7px;padding:3px 10px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;margin-left:8px}.titcopy:hover{border-color:var(--orange);color:var(--orange)}
+  .titcard input{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 11px;font-family:inherit;font-size:13px;background:var(--bg);color:var(--ink);margin-bottom:7px}.titcard input:focus{outline:none;border-color:var(--orange)}
+  .tgen{width:100%;padding:13px;border:none;border-radius:12px;background:var(--orange);color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 8px 22px rgba(255,77,28,.32);transition:transform .14s,filter .14s;margin-top:4px}.tgen:hover{filter:brightness(1.06);transform:translateY(-1px)}.tgen:active{transform:translateY(0)}
+  .clr{font-size:11px;color:var(--mut2);cursor:pointer;text-decoration:underline;margin-top:12px;display:inline-block}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="top"><button class="kb" onclick="toggleSide()" id="sideBtn" title="Recolher / mostrar menu" style="padding:7px 9px;margin-right:2px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button><div class="logo">C</div><h1>CLIPSELLER</h1>
+    <div class="tab"><span class="dot" id="topdot"></span> Canvas de Campanha</div>
+    <div class="right"><span class="cred" id="cred" onclick="topUp()" title="Adicionar créditos (demo)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="12" cy="12" r="8"/><path d="M14.5 9.5a3 3 0 1 0 0 5"/></svg> <b id="credn">500</b></span><button class="kb" onclick="toggleTheme()" id="themeBtn" title="Painel preto / branco">◐ Tema</button><button class="kb" onclick="togglePanel()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg> Diretor</button><button class="kb" onclick="showGate()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="8" cy="8" r="3"/><path d="M10.2 10.2 18 18M16 18l2-2 2 2-2 2z"/></svg> Chaves</button></div></div>
+  <nav class="side" id="side">
+    <div class="sgrp">Estúdios</div>
+    <div class="si" onclick="goStation('rapida',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 11-13h-7l0-7z"/></svg><span>Geração Rápida</span></div>
+    <div class="si on" onclick="goStation('estudio',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Estúdio de Fotos</div>
+    <div class="si" onclick="goStation('inspirada',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 15-5-5L5 21"/></svg>Foto Inspirada</div>
+    <div class="si" onclick="goStation('moda',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3a2 2 0 0 1 2 2c0 1.2-1 1.8-2 2.3l7 3.7v9H5v-9l7-3.7C11 6.8 10 6.2 10 5a2 2 0 0 1 2-2z"/></svg>Estúdio de Moda</div>
+    <div class="si" onclick="goStation('acessorios',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12l3 5-9 13L3 8z"/><path d="M3 8h18M9 3 6 8l6 13 6-13-3-5"/></svg>Estúdio de Acessórios</div>
+    <div class="si" onclick="goStation('titulo',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Gerador de Título</div>
+    <div class="sgrp">Sistema</div>
+    <div class="si" onclick="goStation('chaves',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7.5" cy="15.5" r="3.5"/><path d="m10 13 8-8M16 5l3 3M19 2l3 3"/></svg>Chaves & Config</div>
+  </nav>
+  <main class="stage" id="stage" style="display:none">
+    <div id="world"><svg id="wires"></svg></div>
+    <div class="rail">
+      <button class="new" onclick="newGen()"><span style="display:grid;place-items:center;font-size:20px">＋</span><small>Gerar</small></button><div class="sep"></div>
+      <button onclick="zoomBy(1.15)" id="rZin" title="Zoom +"></button><button onclick="zoomBy(.87)" id="rZout" title="Zoom −"></button>
+      <button onclick="fitView()" id="rFit" title="Ajustar"></button><div class="sep"></div>
+      <button onclick="juntar()" id="rMerge" title="Juntar vídeos aprovados num anúncio final"><small>Final</small></button>
+    </div>
+    <div style="position:fixed;right:16px;bottom:16px;z-index:40;display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+      <div id="nav" style="display:none;flex-direction:column;gap:8px;align-items:flex-end">
+        <select id="gotoSel" onchange="goToProduct(this.value)" style="background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font:inherit;font-size:12px;font-weight:600;width:176px;cursor:pointer;box-shadow:var(--shadow,0 8px 24px rgba(0,0,0,.18))"><option value="">Ir para produto…</option></select>
+        <div id="mini" onclick="miniJump(event)" title="Mapa do canvas · clique pra ir" style="border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow,0 8px 24px rgba(0,0,0,.18));display:none;line-height:0;overflow:hidden"></div>
+      </div>
+      <button onclick="toggleNav()" title="Mapa do canvas / ir para produto" style="background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 13px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;box-shadow:var(--shadow,0 8px 24px rgba(0,0,0,.18));display:flex;align-items:center;gap:7px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V5h4M20 9V5h-4M4 15v4h4M20 15v4h-4"/></svg> Mapa</button>
+    </div>
+    <div class="tip">Clique num nó pra ver as opções · arraste pra mover · recolha (⊟) a foto principal pra mover o projeto inteiro</div>
+  </main>
+  <div class="station" id="station"></div>
+  <div class="center" id="center"></div>
+  <aside class="agent"><div class="ah"><div class="av">✦</div><div><b>Diretor de Arte IA</b><small>foca no produto · cria imagem e vídeo</small></div></div>
+    <div class="log" id="log"><div class="entry"><div class="msg think">Cole suas chaves pra começar.</div></div></div>
+    <div class="foot"><span class="d" style="background:var(--mut2)"></span> Aguardando chaves</div></aside>
+</div>
+<div class="pop" id="pop"></div>
+<button id="cancelAdd" onclick="cancelAdd()" style="display:none;position:fixed;top:62px;right:18px;z-index:55;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:9px;padding:8px 13px;font-family:'Outfit';font-weight:600;font-size:12.5px;cursor:pointer;box-shadow:var(--shadow)">✕ Cancelar</button>
+<div class="lightbox" id="lb" onclick="this.classList.remove('on')"></div>
+<div class="titwrap" id="titwrap"><div class="titcard" id="titcard"></div></div>
+<input type="file" id="file" accept="image/*" multiple>
+<input type="file" id="music" accept="audio/*">
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
+<script>
+const ANTHROPIC_MODEL="claude-sonnet-4-6",IMG_MODEL="fal-ai/nano-banana-pro/edit",VID_MODEL="bytedance/seedance-2.0/fast/image-to-video";
+const FMT_ICONS={};
+const IC={
+ plus:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+ zin:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M11 8v6M8 11h6M20.5 20.5l-3.7-3.7"/></svg>',
+ zout:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M20.5 20.5l-3.7-3.7"/></svg>',
+ fit:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V5a1 1 0 0 1 1-1h4M20 9V5a1 1 0 0 0-1-1h-4M4 15v4a1 1 0 0 0 1 1h4M20 15v4a1 1 0 0 1-1 1h-4"/></svg>',
+ merge:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v6a5 5 0 0 0 10 0V3M12 14v7"/></svg>',
+ dl:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 19h14"/></svg>',
+ more:'<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>',
+ video:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>',
+ refresh:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></svg>',
+ edit:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+ check:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+ ext:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4l8 8-8 8M13 4l8 8-8 8"/></svg>',
+ cut:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.6"/><circle cx="6" cy="18" r="2.6"/><path d="M20 4L8.2 15.8M14.6 14.6L20 20"/></svg>',
+ spark:'<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/></svg>'
+};
+const PRODUCT_FMTS=[
+ {format:"Abertura",prompt:"Cinematic slow dolly-in reveal of the product, shallow depth of field, soft volumetric light, premium TV-commercial look, product perfectly still and centered. No people, no text."},
+ {format:"Giro orbital",prompt:"Smooth cinematic orbital camera move around the product, elegant rim lighting, premium ad look, product static. No people, no text."},
+ {format:"Crash zoom",prompt:"Cinematic fast push-in (crash zoom) into a macro detail of the product, highlighting texture and finish, dramatic light, product static. No people, no text."},
+ {format:"Tracking lateral",prompt:"Cinematic lateral tracking shot gliding past the product with parallax, premium soft light, product static. No people, no text."},
+ {format:"Fecho",prompt:"Cinematic slow pull-out ending on a clean hero composition with empty negative space for a logo or CTA, premium light, product still. No people, no text."}
+];
+const PERSON_FMTS=[
+ {format:"Depoimento",prompt:"Casual phone-recorded selfie video: the creator looks at the camera and gives an honest, excited testimonial, subtle natural handheld motion."},
+ {format:"Mostrando",prompt:"Casual UGC: the creator shows and gestures toward the product, turning it to highlight details while talking to the camera."},
+ {format:"Unboxing",prompt:"Casual UGC: the creator excitedly unboxes and reveals the product for the first time, reacting genuinely, handheld phone-recorded."},
+ {format:"No carro",prompt:"Casual UGC filmed sitting in a car seat, natural daylight through the window, the creator talks to the camera about the product they just got."},
+ {format:"Em casa",prompt:"Casual UGC at home on a couch or in a cozy room, relaxed everyday setting, the creator chats to the camera holding the product."},
+ {format:"Na rua",prompt:"Casual street-style UGC outdoors on a city street, natural light, the creator talks to the camera about the product."},
+ {format:"Arrumando-se",prompt:"Get-ready-with-me UGC in front of a mirror or vanity, the creator incorporates the product while getting ready, chatting to the camera."},
+ {format:"No dia a dia",prompt:"Casual lifestyle UGC of the creator naturally using the product in a real everyday moment, talking to the camera."},
+ {format:"Review",prompt:"UGC review: the creator gives a quick honest opinion, pointing out what they like about the product, casual phone-recorded."}
+];
+function fmtList(im){return im.onmodel?((im.fmts&&im.fmts.length)?im.fmts:PERSON_FMTS):PRODUCT_FMTS;}
+const MODA_FMTS=[
+ {format:"Passarela",prompt:"The model walks slowly toward the camera like on a fashion runway, confident catwalk motion, the garment moving naturally with each step, smooth cinematic camera, premium fashion-film look."},
+ {format:"Virada de corpo",prompt:"The model slowly turns the body from front to 3/4 to side, showing the outfit from several angles, elegant controlled motion, smooth cinematic camera."},
+ {format:"Tecido em movimento",prompt:"The fabric of the piece flows and sways gracefully as the model gently moves or twirls, highlighting the movement and drape of the garment, soft cinematic slow motion."},
+ {format:"Detalhe em foco",prompt:"Cinematic slow camera glide toward a key detail of the worn piece (texture, stitching, shine, fit) while the model holds a subtle elegant pose, premium fashion close-up."}
+];
+const FIDELITY_MODA="The model and the worn product must stay completely consistent the whole time — same garment/accessory, same color, pattern, shape and details (do NOT morph, restyle or resize the product). The model is the same realistic person throughout, natural body and motion, no speaking, no text, no watermark. ";
+const FIDELITY="The product must stay completely identical and unchanged throughout — same shape, proportions, logo, text, color, material. Do NOT morph, redesign or alter it. Subtle natural motion only (person and camera move gently, product held steady and clearly visible). ";
+const FIDELITY_PROD="The product must stay completely identical and unchanged throughout — same shape, proportions, logo, text, color, material. Do NOT morph, redesign or alter it. The product is the ONLY subject in the scene — absolutely no people, no person, no hands, no bystanders. Only a subtle slow CAMERA move; the product stays still, centered and clearly visible. ";
+const VIDEO_NEGATIVE="person, people, human, man, woman, crowd, pedestrian, walking, hands, fingers, camera, dslr, photo camera, lens, tripod, phone, device, gadget, new objects, extra objects, duplicate, morphing, deformation, melting, distorted text, warped text, watermark";
+const IMG_FIDELITY="Reproduce the product with its exact real design, label, text, logo, colors, proportions and true-to-life scale. Do NOT redesign, distort, restyle or resize it unrealistically. ";
+const PERSON_REALISM=" The person is a real, everyday Brazilian — candid and authentic, like a genuine amateur phone photo, NOT a polished catalog or AI model. Natural skin with real texture and minor imperfections, realistic body proportions, relaxed casual pose and expression, natural available daylight, no glossy retouching, no plastic skin. Authentic UGC realism.";
+const VAR_STYLES=["shot as a clean top-down flat lay on a neutral surface","a dramatic low side angle with soft directional light and gentle shadows","placed in a real Brazilian lifestyle setting (e.g. on a wooden table at home), natural daylight","an extreme macro close-up highlighting the material, texture and finish","on a bold solid-color seamless studio background","a wide premium catalog hero shot with lots of negative space","styled with a few simple complementary props around it","a high angle looking straight down, modern e-commerce style"];
+const LSK='clipseller_v31',KSK='clipseller_keys';
+const CRED={imgPremium:12,imgBasico:8,inspirada:15,titulo:10,modaLook:14,vidProd5:60,vidProd10:100,ugc5:70,ugc10:130,montagem:30};
+function vidCost(dur,isUgc){var d=parseInt(dur)||5;return isUgc?(d>=10?CRED.ugc10:CRED.ugc5):(d>=10?CRED.vidProd10:CRED.vidProd5);}
+let credits=500, theme='light';
+let KEYS={anthropic:"",fal:"",kie:"",google:"",laozhang:"",lzSora:"",lzImg:"",lzNano:"",proxy:"",vidbk:"",imgbk:"",ugcbk:"",fashn:""};
+let photos=[],curName="",curGoal="",curPersona="tanto faz",curNiche="pessoa",curSub="",curCount=5,curAspect="1:1",curImgTier="premium",curVidTier="basico";
+const LZ_BASE="https://api.laozhang.ai/v1", LZ_SEEDANCE="doubao-seedance-2-0-fast-260128", LZ_SORA="sora-2", LZ_IMG_PRO="gemini-3-pro-image-preview";
+let imgEngineMode='lz',lastImgEngine='';
+function aspCss(a){return a==='9:16'?'9/16':a==='4:5'?'4/5':a==='16:9'?'16/9':a==='3:4'?'3/4':'1/1';}
+function aspRatio(a){return a==='9:16'?16/9:a==='4:5'?1.25:a==='16:9'?9/16:a==='3:4'?4/3:1;}
+function aspSize(a){return a==='9:16'?'1024x1820':a==='4:5'?'1024x1280':a==='16:9'?'1820x1024':a==='3:4'?'1024x1365':'1024x1024';}
+let WS={estudio:{products:[],images:[],videos:[],links:[],finals:[]},moda:{products:[],images:[],videos:[],links:[],finals:[]},acessorios:{products:[],images:[],videos:[],links:[],finals:[]}};
+let MODE='estudio';
+let S=WS.estudio; let ic=0,vc=0,pc=0,fc=0,addMode=false;
+const stage=document.getElementById('stage'),world=document.getElementById('world'),center=document.getElementById('center'),fileEl=document.getElementById('file');
+let wires=document.getElementById('wires');
+const logEl=document.getElementById('log'),footEl=document.querySelector('.agent .foot'),topdot=document.getElementById('topdot'),pop=document.getElementById('pop'),lb=document.getElementById('lb');
+function log(h,c='msg'){const e=document.createElement('div');e.className='entry';e.innerHTML=(c==='raw')?h:`<div class="${c}">${h}</div>`;logEl.appendChild(e);logEl.scrollTop=logEl.scrollHeight;}
+function tool(i,k,c,s){return `<div class="tool"><span class="ti ${k}">${i}</span><code>${c}</code><span class="st ${s}">${s}</span></div>`;}
+function lastRun(){return logEl.querySelector('.tool .st.run');}
+function setFoot(t,c){footEl.innerHTML=`<span class="d" style="background:${c||'var(--green)'}"></span> ${t}`;}
+function togglePanel(){document.getElementById('app').classList.toggle('nopanel');}
+function toggleSide(){document.getElementById('app').classList.toggle('sidehide');}
+let inspProd=null,inspRef=null,inspLastUrl=null;
+function renderInspirada(){const st=document.getElementById('station');if(!st)return;st.classList.add('on');
+  st.innerHTML=`<div class="insp">
+    <div class="insp-head"><h2>Foto Inspirada</h2><p>Suba o seu produto e uma foto de referência (a estética que você quer copiar). A IA recria o seu produto naquele clima — sem copiar o produto da referência.</p></div>
+    <div class="insp-up">
+      <label class="insp-tile"><input type="file" accept="image/*" onchange="inspUpload(this,'prod')"><div class="insp-ph" id="inspPhProd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Produto<small>sua foto</small></div></label>
+      <label class="insp-tile"><input type="file" accept="image/*" onchange="inspUpload(this,'ref')"><div class="insp-ph" id="inspPhRef"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 15-5-5L5 21"/></svg>Referência<small>estética desejada</small></div></label>
+    </div>
+    <input id="inspName" placeholder="Nome do produto (ex: bolsa de couro feminina)">
+    <input id="inspExtra" placeholder="Ajuste opcional (ex: fundo mais claro, sem pessoas)">
+    <button class="tgen" onclick="genInspirada()">Gerar foto inspirada · 15 cr</button>
+    <div id="inspOut" class="insp-out"></div></div>`;
+  if(inspProd)setInspPreview('prod',inspProd);if(inspRef)setInspPreview('ref',inspRef);if(inspLastUrl)showInspResult(inspLastUrl);}
+function setInspPreview(kind,url){const ph=document.getElementById(kind==='prod'?'inspPhProd':'inspPhRef');if(ph)ph.innerHTML=`<img src="${url}" alt="" style="width:100%;height:100%;object-fit:cover">`;}
+function inspUpload(input,kind){const f=input.files&&input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{if(kind==='prod')inspProd=r.result;else inspRef=r.result;setInspPreview(kind,r.result);};r.readAsDataURL(f);}
+function ibtns(url,fname,regen){return `<button class="ibtn dl" onclick="dlUrl('${url}','${fname}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>Baixar</button><button class="ibtn alt" onclick="${regen}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></svg>Gerar de novo</button>`;}
+function showInspResult(url){const out=document.getElementById('inspOut');if(!out)return;out.innerHTML=`<div class="insp-result"><img src="${url}"><div class="insp-actions">${ibtns(url,'foto-inspirada.jpg','genInspirada()')}</div></div>`;}
+async function genInspirada(){const out=document.getElementById('inspOut');
+  if(!inspProd){if(out)out.innerHTML='<div class="err">Suba a foto do seu produto.</div>';return;}
+  if(!inspRef){if(out)out.innerHTML='<div class="err">Suba a foto de referência.</div>';return;}
+  if(!KEYS.anthropic||!KEYS.fal){showGate();return;}
+  if(!needCred(15,'Foto Inspirada'))return;
+  out.innerHTML=`<div class="insp-load"><div class="spin"></div> <span id="inspMsg">recortando o produto…</span></div>`;
+  const setMsg=m=>{const e=document.getElementById('inspMsg');if(e)e.textContent=m;};
+  try{let cleanProd;try{cleanProd=await composeWhite(await removeBgFal(inspProd));}catch(e){cleanProd=await inNormalizeImage(inspProd,1280,.9);}
+    setMsg('analisando a estética da referência…');
+    const name=(document.getElementById('inspName').value||'produto').trim();
+    const aesthetic=await inAnalyzeReference(inspRef,name);
+    setMsg('gerando a foto inspirada…');
+    const refN=await inNormalizeImage(inspRef,1280,.85);
+    const extra=(document.getElementById('inspExtra').value||'').trim();
+    const prompt=inBuildPrompt(name,'',aesthetic,extra);
+    const r=await imgEngine({prompt,image_urls:[cleanProd,refN],num_images:1,aspect_ratio:'auto',output_format:'jpeg',resolution:'2K'});
+    const url=r&&r.images&&r.images[0]&&r.images[0].url;if(!url)throw new Error('o motor não retornou imagem (tente de novo)');inspLastUrl=url;showInspResult(url);
+  }catch(err){out.innerHTML=`<div class="err">Não consegui gerar: ${(err&&err.message)||err}</div>`;}}
+async function removeBgFal(b64){const r=await fetch('https://fal.run/fal-ai/birefnet',{method:'POST',headers:{'Authorization':'Key '+KEYS.fal,'Content-Type':'application/json'},body:JSON.stringify({image_url:b64,model:'General Use (Heavy)','operating_speed':'normal','refine_foreground':true})});
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error('recorte '+r.status+': '+(e.detail||e.message||''));}
+  const d=await r.json();const url=(d.image&&d.image.url)||(d.images&&d.images[0]&&d.images[0].url);if(!url)throw new Error('recorte sem URL');
+  const res=await fetch(url);const blob=await res.blob();return new Promise(rs=>{const fr=new FileReader();fr.onload=e=>rs(e.target.result);fr.readAsDataURL(blob);});}
+function composeWhite(b64){return new Promise(res=>{const img=new Image();img.onload=()=>{const SZ=900,c=document.createElement('canvas');c.width=SZ;c.height=SZ;const ctx=c.getContext('2d');ctx.fillStyle='#FFFFFF';ctx.fillRect(0,0,SZ,SZ);const sc=Math.min(SZ*.82/img.width,SZ*.82/img.height);const w=img.width*sc,h=img.height*sc;ctx.drawImage(img,(SZ-w)/2,(SZ-h)/2,w,h);res(c.toDataURL('image/jpeg',.92));};img.onerror=()=>res(b64);img.src=b64;});}
+function inNormalizeImage(b64,maxSize,quality){maxSize=maxSize||1280;quality=quality||.85;return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{let w=img.width,h=img.height;if(Math.max(w,h)>maxSize){if(w>h){h=Math.round(h*maxSize/w);w=maxSize;}else{w=Math.round(w*maxSize/h);h=maxSize;}}const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');ctx.fillStyle='#FFFFFF';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);resolve(c.toDataURL('image/jpeg',quality));};img.onerror=()=>reject(new Error('Imagem não suportada (tente JPG ou PNG).'));img.src=b64;});}
+async function inAnalyzeReference(refB64,name){const normalized=await inNormalizeImage(refB64,1280,.85);const refData=normalized.replace(/^data:[^;]+;base64,/,'');
+  const sys=`Você é um diretor de fotografia profissional. Analise UMA FOTO DE REFERÊNCIA e extraia a ESTÉTICA dela em texto — pra outro modelo recriar essa mesma estética com um produto DIFERENTE. Você NÃO descreve o produto nem as pessoas da foto; descreve o ESTILO da foto.`;
+  const userInstr=`Analise esta foto de referência. Descreva em INGLÊS conciso (máx 150 palavras, frase fluida, sem listas, sem JSON): 1) ambiente/cenário (materiais, superfícies, props); 2) iluminação (tipo, direção, dureza, temperatura); 3) paleta de cores e mood; 4) composição e ângulo de câmera; 5) mood geral; 6) estilo fotográfico. NÃO descreva o produto específico nem marcas. Descreva com riqueza pra a cena ser RECRIADA com outro produto. Comece direto pela descrição.`;
+  const d=await anthropicMsg({model:ANTHROPIC_MODEL,max_tokens:600,system:sys,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:'image/jpeg',data:refData}},{type:'text',text:userInstr}]}]});return (d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();}
+function inBuildPrompt(name,cat,aesthetic,extra){return ['TASK: Create a new product photo by combining elements from the two input images.','','IMAGE 1 (PRODUCT REFERENCE): This is the product. Preserve it 100% identical in the output — exact same shape, color, material, all visible details. The product from Image 1 is the only product that appears in the final photo.','','IMAGE 2 (STYLE REFERENCE): Use only the AESTHETIC of this image — the lighting, mood, composition, camera angle, color palette, background style, and overall photographic genre. DO NOT copy the specific product, model, person, or objects from Image 2 into the output.','','AESTHETIC DETAILS (from Image 2):',aesthetic,'','OUTPUT REQUIREMENTS:','- A new scene that has NEVER existed before — not a copy of Image 2','- The product from Image 1 placed naturally in a NEW environment that matches the aesthetic','- Lighting, composition and color palette match the style reference','- No people from Image 2 carried over','- No specific objects from Image 2 carried over','- Professional e-commerce quality, photorealistic, sharp focus on the product',extra?('- User adjustment: '+extra):''].filter(Boolean).join('\n');}
+async function fashnRun(modelName,inputs){if(!KEYS.fashn)throw new Error('Configure a chave do Motor de Moda em Chaves & Config.');
+  let r=null,last='';
+  for(let a=0;a<4;a++){try{r=await fetch('https://api.fashn.ai/v1/run',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+KEYS.fashn},body:JSON.stringify({model_name:modelName,inputs})});}catch(net){last='Moda sem resposta: '+((net&&net.message)||net);await new Promise(res=>setTimeout(res,2500*(a+1)));continue;}
+    if(r.ok)break;
+    const e=await r.json().catch(()=>({}));const hint=r.status===401?' — chave do Motor de Moda inválida':r.status===402?' — créditos do Motor de Moda esgotados':'';last='Moda '+r.status+hint+': '+((e.error&&(e.error.message||e.error))||e.message||'');
+    if(r.status===429||r.status===503||r.status===502||r.status===500){await new Promise(res=>setTimeout(res,2500*(a+1)));continue;}
+    throw new Error(last);}
+  if(!r||!r.ok)throw new Error(last||'Moda: indisponível, tente de novo');
+  const d=await r.json();if(!d.id)throw new Error('Motor de Moda não retornou ID');
+  for(let i=0;i<90;i++){await new Promise(res=>setTimeout(res,4000));
+    const s=await fetch('https://api.fashn.ai/v1/status/'+d.id,{headers:{'Authorization':'Bearer '+KEYS.fashn}});if(!s.ok)continue;
+    const sd=await s.json();const st=(sd.status||'').toLowerCase();
+    if(st==='completed'){const url=Array.isArray(sd.output)?sd.output[0]:sd.output;if(url)return url;throw new Error('Moda: sem URL no output');}
+    if(st==='failed'||st==='error')throw new Error('Moda falhou: '+((sd.error&&(sd.error.message||sd.error))||'tente de novo'));}
+  throw new Error('Moda: tempo limite, tente de novo.');}
+async function fashnProductToModel(productB64,prompt,aspectRatio,seed){const inp={product_image:productB64,prompt:prompt||'Brazilian woman model, professional e-commerce photo, white studio background, full body shot',aspect_ratio:aspectRatio||'3:4',resolution:'1k',generation_mode:'balanced',output_format:'jpeg',return_base64:false};if(seed!=null)inp.seed=seed;return await fashnRun('product-to-model',inp);}
+let modaProd=null,modaLastUrl=null;
+function renderModa(){const st=document.getElementById('station');if(!st)return;st.classList.add('on');
+  st.innerHTML=`<div class="insp">
+    <div class="insp-head"><h2>Moda · Provador</h2><p>Suba a peça (roupa, calçado ou acessório) e a IA veste numa modelo brasileira em foto de e-commerce. Descreva a modelo se quiser.</p></div>
+    <div class="insp-up" style="grid-template-columns:1fr"><label class="insp-tile" style="aspect-ratio:16/10"><input type="file" accept="image/*" onchange="modaUpload(this)"><div class="insp-ph" id="modaPh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3a2 2 0 0 1 2 2c0 1.2-1 1.8-2 2.3l7 3.7v9H5v-9l7-3.7C11 6.8 10 6.2 10 5a2 2 0 0 1 2-2z"/></svg>Peça / produto<small>roupa · calçado · acessório</small></div></label></div>
+    <input id="modaModel" placeholder="Modelo (opcional): ex. mulher brasileira 30 anos, cabelo cacheado">
+    <select id="modaAsp"><option value="3:4">Retrato 3:4 (e-commerce)</option><option value="1:1">Quadrado 1:1 (Shopee)</option><option value="9:16">Story 9:16</option></select>
+    <button class="tgen" onclick="genModa()">Vestir na modelo · 20 cr</button>
+    <div id="modaOut" class="insp-out"></div></div>`;
+  if(modaProd)setModaPreview(modaProd);if(modaLastUrl)showModaResult(modaLastUrl);}
+function setModaPreview(url){const ph=document.getElementById('modaPh');if(ph)ph.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:contain;background:#fff">`;}
+function modaUpload(input){const f=input.files&&input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{modaProd=r.result;setModaPreview(r.result);};r.readAsDataURL(f);}
+function showModaResult(url){const out=document.getElementById('modaOut');if(!out)return;out.innerHTML=`<div class="insp-result"><img src="${url}"><div class="insp-actions">${ibtns(url,'moda-provador.jpg','genModa()')}</div></div>`;}
+async function genModa(){const out=document.getElementById('modaOut');
+  if(!modaProd){if(out)out.innerHTML='<div class="err">Suba a foto da peça.</div>';return;}
+  if(!KEYS.fashn){if(out)out.innerHTML='<div class="err">Configure a chave do Motor de Moda em Chaves & Config em Chaves & Config.</div>';return;}
+  if(!needCred(20,'Moda · Provador'))return;
+  out.innerHTML=`<div class="insp-load"><div class="spin"></div> vestindo na modelo… (pode levar até ~1 min)</div>`;
+  try{const mp=(document.getElementById('modaModel').value||'').trim();const asp=document.getElementById('modaAsp').value||'3:4';
+    const prompt=(mp?('Brazilian model, '+mp):'Brazilian woman model, 25-35 years old')+', professional e-commerce photo, clean studio background, full body shot';
+    const url=await fashnProductToModel(modaProd,prompt,asp,Math.floor(Math.random()*4000000000));modaLastUrl=url;showModaResult(url);
+  }catch(err){out.innerHTML=`<div class="err">Não consegui gerar: ${(err&&err.message)||err}</div>`;}}
+function goStation(st,el){document.querySelectorAll('.side .si').forEach(x=>x.classList.remove('on'));if(el)el.classList.add('on');const station=document.getElementById('station');
+  if(st==='chaves'){if(station)station.classList.remove('on');showGate();return;}
+  if(st==='rapida'){if(!KEYS.kie&&!KEYS.laozhang&&!KEYS.fal){showGate();return;}renderRapida();return;}
+  if(st==='estudio'){if(station)station.classList.remove('on');enterCanvasMode('estudio');return;}
+  if(st==='acessorios'){if(station)station.classList.remove('on');enterCanvasMode('acessorios');return;}
+  if(st==='inspirada'){renderInspirada();return;}
+  if(st==='titulo'){if(!KEYS.anthropic){showGate();return;}renderTitleSolo();return;}
+  if(st==='moda'){if(station)station.classList.remove('on');enterCanvasMode('moda');return;}
+  const map={};
+  const d=map[st]||['Em breve',''];if(!station)return;station.classList.add('on');
+  station.innerHTML=`<div style="text-align:center;max-width:360px;padding:30px"><div style="width:54px;height:54px;border-radius:14px;background:rgba(255,77,28,.12);display:grid;place-items:center;margin:0 auto;color:var(--orange)"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3 style="margin:16px 0 7px;font-size:19px">${d[0]}</h3><p style="color:var(--mut);font-size:13px;line-height:1.55">${d[1]}</p><button class="tgen" style="width:auto;margin-top:18px;padding:11px 22px" onclick="goStation('estudio',document.querySelector('.side .si'))">Voltar ao Estúdio</button></div>`;}
+function enterCanvasMode(m){if(MODE!==m){MODE=m;S=WS[m];}pop.style.display='none';try{renderWorld();}catch(_){}
+  if(!KEYS.anthropic||!KEYS.fal){showGate();return;}
+  if(S.products&&S.products.length){startCanvas();return;}
+  center.style.display='grid';center.style.cssText='';stage.style.display='none';
+  const titles={estudio:'Estúdio de Fotos',moda:'Estúdio de Moda',acessorios:'Estúdio de Acessórios'};
+  const subs={estudio:'Suba a foto do seu produto pra começar.',moda:'Suba a peça (roupa, calçado, lingerie ou moda praia). A modelo veste o produto — Diretor, variações e vídeo iguais ao estúdio.',acessorios:'Suba o acessório (relógio, joia, etc). Foco total no produto — hero, macro e uso no pulso/mão, sem alterar a peça.'};
+  const cta={estudio:'Adicionar produto',moda:'Adicionar peça',acessorios:'Adicionar acessório'};
+  center.innerHTML=`<div class="card-c"><h3>${titles[m]||titles.estudio}</h3><p>${subs[m]||subs.estudio}</p><button class="btn acc" onclick="newGen()">${cta[m]||cta.estudio} →</button></div>`;}
+/* persistence */
+let saveT;function saveSoon(){clearTimeout(saveT);saveT=setTimeout(save,700);}
+function save(){try{localStorage.setItem(LSK,JSON.stringify({WS,MODE,ic,vc,pc,fc,credits,theme,imgEngineMode}));localStorage.setItem(KSK,JSON.stringify(KEYS));}catch(_){}}
+function load(){
+  const def={anthropic:"",fal:"",kie:"",google:"",laozhang:"",lzSora:"",lzImg:"",lzNano:"",proxy:"",vidbk:"",imgbk:"",ugcbk:"",fashn:""};
+  let keys=null;try{const k=JSON.parse(localStorage.getItem(KSK));if(k&&typeof k==='object')keys=k;}catch(_){}
+  if(!keys){try{const old=JSON.parse(localStorage.getItem('clipseller_v19'));if(old&&old.KEYS&&typeof old.KEYS==='object'){keys=old.KEYS;}}catch(_){}}
+  try{const d=JSON.parse(localStorage.getItem(LSK));if(d){
+  if(d.WS){WS.estudio=d.WS.estudio||WS.estudio;WS.moda=d.WS.moda||WS.moda;WS.acessorios=d.WS.acessorios||WS.acessorios;}
+  else if(d.S){WS.estudio=d.S;}
+  ['estudio','moda','acessorios'].forEach(k=>{const w=WS[k];['products','images','videos','links','finals'].forEach(a=>{if(!w[a])w[a]=[];});});
+  MODE=(['moda','acessorios'].includes(d.MODE))?d.MODE:'estudio';S=WS[MODE];
+  ic=d.ic||0;vc=d.vc||0;pc=d.pc||0;fc=d.fc||0;KEYS=Object.assign(def,keys||d.KEYS||{});credits=(typeof d.credits==='number')?d.credits:500;theme=d.theme||'light';imgEngineMode=(d.imgEngineMode==='fal')?'fal':'lz';if(keys)save();return true;}}catch(_){}
+  KEYS=Object.assign(def,keys||{});if(keys){try{save();}catch(_){}}return false;}
+function csProxy(u){if(!u||typeof u!=='string')return u;if(u.charAt(0)==='/')return u;const m=[['https://kieai.redpandaai.co/api','/cs-proxy/kieupload'],['https://api.kie.ai','/cs-proxy/kie'],['https://api.laozhang.ai','/cs-proxy/laozhang'],['https://queue.fal.run','/cs-proxy/falqueue'],['https://fal.run','/cs-proxy/fal'],['https://api.fashn.ai','/cs-proxy/fashn'],['https://generativelanguage.googleapis.com','/cs-proxy/google'],['https://api.anthropic.com','/cs-proxy/anthropic']];for(let i=0;i<m.length;i++){if(u.indexOf(m[i][0])===0)return m[i][1]+u.slice(m[i][0].length);}return u;}
+function px(u){return KEYS.proxy?(KEYS.proxy.replace(/\/+$/,'')+'/?url='+encodeURIComponent(u)):csProxy(u);}
+function applyTheme(){document.body.classList.toggle('dark',theme==='dark');const b=document.getElementById('themeBtn');if(b)b.textContent=(theme==='dark'?'☀ Claro':'◐ Escuro');}
+function toggleTheme(){theme=(theme==='dark'?'light':'dark');applyTheme();save();}
+function wipe(){if(!confirm('Limpar TODO o canvas dos 3 estúdios (produtos, fotos e vídeos gerados)? Suas chaves de API continuam salvas. Não dá pra desfazer.'))return;try{localStorage.removeItem(LSK);}catch(_){}WS={estudio:{products:[],images:[],videos:[],links:[],finals:[]},moda:{products:[],images:[],videos:[],links:[],finals:[]},acessorios:{products:[],images:[],videos:[],links:[],finals:[]}};MODE='estudio';S=WS.estudio;ic=vc=pc=fc=0;photos=[];curName="";location.reload();}
+function updateCred(){const e=document.getElementById('credn');if(e)e.textContent=credits;}
+/* === COBRANÇA DE CRÉDITOS ===
+   HOOK PRO DEV: trocar o corpo de chargeCreditsBackend por uma chamada ao backend
+   que debita do saldo real do usuário no banco de dados. Retornar true se debitou. */
+function chargeCreditsBackend(amount,label){/* DEV: conectar ao DB de usuários e debitar aqui (amount em créditos, label = ação) */return true;}
+function needCred(c,label){if(credits<c){alert('Créditos insuficientes ('+c+'). Clique no <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="12" cy="12" r="8"/><path d="M14.5 9.5a3 3 0 1 0 0 5"/></svg> no topo pra adicionar (demo).');return false;}credits-=c;updateCred();save();chargeCreditsBackend(c,label||'');return true;}
+function topUp(){credits+=100;updateCred();save();}
+
+function showGate(){stage.style.display='none';center.style.display='grid';center.style.cssText='';
+  center.innerHTML=`<div class="card-c"><h3>Conecte suas chaves</h3><p>Rode o arquivo BAIXADO no navegador. As chaves ficam salvas só neste navegador.</p>
+  <div class="field"><label>Anthropic API Key <small style="color:var(--mut2);font-weight:400">(Diretor de Arte)</small></label><input id="kAnt" type="password" value="${KEYS.anthropic}"></div>
+  <div class="field"><label>fal.ai API Key <small style="color:var(--mut2);font-weight:400">(imagem · reserva final, sempre Pro)</small></label><input id="kFal" type="password" value="${KEYS.fal}"></div>
+  <div class="field"><label>Kie.ai API Key <small style="color:var(--mut2);font-weight:400">(imagem · motor principal, mais econômico)</small></label><input id="kKie" type="password" value="${KEYS.kie||''}" placeholder="opcional · entra como 1º da cascata de imagem"></div>
+  <div class="field"><label>Google Gemini API Key <small style="color:var(--mut2);font-weight:400">(imagem · fonte oficial, 3ª na cascata)</small></label><input id="kGoogle" type="password" value="${KEYS.google||''}" placeholder="opcional · ative quando configurar o pagamento no Google"></div>
+  <div class="field"><label>fashn.ai API Key <small style="color:var(--mut2);font-weight:400">(Motor de Moda · provador / try-on)</small></label><input id="kFash" type="password" value="${KEYS.fashn||''}"></div>
+  <div class="field"><label>laozhang API Key <small style="color:var(--mut2);font-weight:400">(token do grupo do Seedance — vídeo Básico)</small></label><input id="kLz" type="password" value="${KEYS.laozhang||''}"></div>
+  <div class="field"><label>laozhang token Sora <small style="color:var(--mut2);font-weight:400">(opcional · só se for outro grupo · vídeo Premium)</small></label><input id="kLzS" type="password" value="${KEYS.lzSora||''}" placeholder="vazio = usa o token acima"></div>
+  <div class="field"><label>laozhang token GPT Image 2 <small style="color:var(--mut2);font-weight:400">(opcional · só se for outro grupo · imagem Básico)</small></label><input id="kLzI" type="password" value="${KEYS.lzImg||''}" placeholder="vazio = usa o token acima"></div>
+  <div class="field"><label>laozhang token Nano Banana Pro <small style="color:var(--mut2);font-weight:400">(grupo com o modelo gemini-3-pro-image-preview · imagem Premium)</small></label><input id="kLzN" type="password" value="${KEYS.lzNano||''}" placeholder="vazio = usa o token principal acima"></div>
+  <div class="field"><label>Proxy (teste de vídeo) <small style="color:var(--mut2);font-weight:400">(opcional · resolve o CORS do laozhang no navegador)</small></label><input id="kPx" type="text" value="${KEYS.proxy||''}" placeholder="ex: http://localhost:8787"></div>
+  <div class="field"><label>Cascata de imagem (automática)</label>
+    <div style="font-size:11px;color:var(--mut2);margin-top:4px;line-height:1.6"><b style="color:var(--ink)">Kie → laozhang → Google → fal.</b> Tenta sempre a mais barata primeiro (Kie, ~$0,09). Se der erro ou passar de 110s, cai pra próxima sozinha, sem aceitar falha. Os motores sem chave são pulados. No navegador, Kie/laozhang/Google usam o proxy; o fal é direto. Vídeo não usa esta cascata — fica no Seedance/laozhang.</div></div>
+  <div class="secnote"><b>Chaves só neste navegador.</b> A do laozhang roda Seedance/Sora (vídeo) e GPT Image 2 (imagem básica). Na produção, o dev move a do laozhang pro servidor.</div><button class="btn acc" onclick="saveKeys()">Salvar e começar →</button>
+  <span class="clr" onclick="wipe()">Limpar todo o canvas (mantém as chaves de API)</span></div>`;}
+function setImgMode(m){imgEngineMode=(m==='fal')?'fal':'lz';save();const b=document.getElementById('imgmodebtns');if(b)b.querySelectorAll('.perc').forEach(el=>{const on=(el.getAttribute('data-m')==='fal')===(imgEngineMode==='fal');el.style.cssText=durCss(on)+';margin:0 5px 0 0;display:inline-block;cursor:pointer';});}
+function saveKeys(){KEYS.anthropic=document.getElementById('kAnt').value.trim();KEYS.fal=document.getElementById('kFal').value.trim();KEYS.kie=document.getElementById('kKie')?document.getElementById('kKie').value.trim():(KEYS.kie||'');KEYS.google=document.getElementById('kGoogle')?document.getElementById('kGoogle').value.trim():(KEYS.google||'');KEYS.laozhang=document.getElementById('kLz').value.trim();KEYS.lzSora=document.getElementById('kLzS').value.trim();KEYS.lzImg=document.getElementById('kLzI').value.trim();KEYS.lzNano=document.getElementById('kLzN')?document.getElementById('kLzN').value.trim():(KEYS.lzNano||'');KEYS.proxy=(document.getElementById('kPx')?document.getElementById('kPx').value.trim():'')||'';KEYS.fashn=document.getElementById('kFash')?document.getElementById('kFash').value.trim():(KEYS.fashn||'');
+  if(!KEYS.anthropic||!KEYS.fal)return alert('Cole as duas chaves.');if(!KEYS.anthropic.startsWith('sk-ant-'))return alert('Chave Anthropic começa com sk-ant-.');
+  topdot.classList.add('on');save();if(S.products.length){startCanvas();}else{logEl.innerHTML='';log('Chaves conectadas. Suba o produto.','msg think');setFoot('Pronto — suba um produto');renderUpload();}}
+
+function newGen(){addMode=true;photos=[];curName="";const c=document.getElementById('cancelAdd');if(c)c.style.display='block';renderUpload();}
+function cancelAdd(){addMode=false;photos=[];curName="";const c=document.getElementById('cancelAdd');if(c)c.style.display='none';center.style.cssText='';if(S.products&&S.products.length){startCanvas();}else{enterCanvasMode(MODE);}}
+function renderUpload(){const ov=addMode;stage.style.display=ov?'block':'none';center.style.display='grid';center.style.cssText=ov?`position:fixed;inset:52px 0 0 0;z-index:40;background:transparent;display:grid`:'';
+  center.innerHTML=`<div class="dropwrap" id="drop"><div class="big"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg></div><strong>${ov?'Novo produto no canvas':'Solte a foto do seu produto'}</strong><p>Pode subir uma ou várias fotos (ângulos diferentes do mesmo produto)</p></div>`;
+  document.getElementById('drop').onclick=()=>pickFiles();}
+function pickFiles(){fileEl.value='';fileEl.click();}
+function sniffMime(b64){if(b64.startsWith('/9j/'))return 'image/jpeg';if(b64.startsWith('iVBORw0KGgo'))return 'image/png';if(b64.startsWith('R0lGOD'))return 'image/gif';if(b64.startsWith('UklGR'))return 'image/webp';return null;}
+fileEl.addEventListener('change',e=>{const fs=[...e.target.files];if(!fs.length)return;let pending=fs.length;
+  fs.forEach(f=>{const r=new FileReader();r.onload=()=>{const b64=r.result.split(',')[1];const mime=sniffMime(b64)||f.type||'image/jpeg';photos.push({b64,mime,uri:'data:'+mime+';base64,'+b64});if(--pending===0)renderReview();};r.readAsDataURL(f);});});
+function renderReview(){let th='';photos.forEach((p,i)=>th+=`<div class="thumb"><img src="${p.uri}"><button onclick="rmPhoto(${i})">×</button></div>`);th+=`<div class="addmore" onclick="pickFiles()">＋</div>`;
+  center.innerHTML=`<div class="card-c"><h3>Fotos do produto</h3><p>Confira antes de gerar. Você pode remover, adicionar mais ou trocar tudo.</p>
+  <div class="thumbs">${th}</div><div class="rowbtns"><button class="btn sec" onclick="clearPhotos()">Trocar tudo</button><button class="btn acc" onclick="afterPhotos()">Continuar →</button></div></div>`;}
+function rmPhoto(i){photos.splice(i,1);if(!photos.length)renderUpload();else renderReview();}
+function clearPhotos(){photos=[];renderUpload();}
+function afterPhotos(){if(!photos.length)return alert('Suba pelo menos uma foto.');renderName();}
+function renderName(){center.innerHTML=`<div class="card-c"><img class="prev" src="${photos[0].uri}"><h3>Qual é o produto?</h3><p>Escreva o que é o herói da foto — outros objetos viram cenário.${photos.length>1?` <b>(${photos.length} fotos)</b>`:''}</p>
+  <div class="field"><input id="pname" placeholder="ex: vestido feminino, bolsa de couro, tênis..." value="${curName}"></div>
+  <div class="rowbtns"><button class="btn sec" onclick="renderReview()">← Fotos</button><button class="btn acc" onclick="afterName()">Continuar →</button></div></div>`;
+  setTimeout(()=>document.getElementById('pname').focus(),50);}
+function afterName(){curName=document.getElementById('pname').value.trim();if(!curName)return alert('Escreve o nome do produto.');if(MODE==='moda')return renderModaNiche();if(MODE==='acessorios')return renderAcessNiche();renderNiche();}
+function renderNiche(){center.innerHTML=`<div class="card-c"><h3>Quem ou o quê aparece com o produto?</h3><p>Define o tipo de cena que o Diretor cria.</p>
+  <div class="goals">
+   <div class="goal" onclick="pickNiche('pessoa')"><div class="gi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="12" cy="5.5" r="2.6"/><path d="M12 8.2v7M12 15.2l-3 5M12 15.2l3 5"/></svg></div><b>Pessoa</b><small>alguém usando o produto</small></div>
+   <div class="goal" onclick="pickNiche('infantil')"><div class="gi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="12" cy="6.5" r="2.5"/><path d="M12 9v5M8.5 12h7M12 14l-2.5 5M12 14l2.5 5"/></svg></div><b>Infantil / Família</b><small>produto infantil, cena família-friendly</small></div>
+   <div class="goal" onclick="pickNiche('casa')"><div class="gi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><path d="M4 11V9a2 2 0 0 1 4 0v2h8V9a2 2 0 0 1 4 0v2"/><rect x="3" y="11" width="18" height="6" rx="1.5"/><path d="M6 17v2M18 17v2"/></svg></div><b>Casa & Decoração</b><small>quadro, parede, móveis…</small></div>
+   <div class="goal" onclick="pickNiche('pet')"><div class="gi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="6" cy="12" r="1.4"/><circle cx="9.5" cy="8.5" r="1.4"/><circle cx="14.5" cy="8.5" r="1.4"/><circle cx="18" cy="12" r="1.4"/><path d="M8.5 16.5a3.5 3.5 0 0 1 7 0 2.5 2.5 0 0 1-2.5 2.5h-2a2.5 2.5 0 0 1-2.5-2.5z"/></svg></div><b>Pet Shop</b><small>animal usando o produto</small></div>
+   <div class="goal" onclick="pickNiche('moda')"><div class="gi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><path d="M9 3l3 2 3-2 1.5 4.5L14 9l2 11H8l2-11-2.5-1.5z"/></svg></div><b>Moda / Roupa</b><small>still sem manequim (ghost) + flatlay</small></div>
+   <div class="goal" onclick="pickNiche('produto')"><div class="gi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg></div><b>Só o produto</b><small>sem pessoa nem animal</small></div>
+  </div>
+  <div class="rowbtns" style="margin-top:14px"><button class="btn sec" onclick="renderName()">← Nome</button></div></div>`;}
+let _subCb=null;
+function renderSub(title,opts,cb){_subCb=cb;center.innerHTML=`<div class="card-c"><h3>${title}</h3>
+  <div class="goals">${opts.map(o=>`<div class="goal" onclick="pickSub('${o[0]}')"><div class="gi">${o[1]}</div><b>${o[2]}</b></div>`).join('')}</div>
+  <div class="rowbtns" style="margin-top:14px"><button class="btn sec" onclick="renderNiche()">← Voltar</button></div></div>`;}
+function pickSub(v){if(_subCb)_subCb(v);}
+function pickNiche(n){curNiche=n;curSub='';
+  if(n==='pessoa')return renderSub('Quem aparece?',[['feminino','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="12" cy="5.5" r="2.6"/><path d="M12 8.2v7M12 15.2l-3 5M12 15.2l3 5"/></svg>','Mulher'],['masculino','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="12" cy="5.5" r="2.6"/><path d="M12 8.2v7M12 15.2l-3 5M12 15.2l3 5"/></svg>','Homem'],['tanto faz','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="9" cy="8" r="2.4"/><circle cx="16" cy="9" r="2"/><path d="M4 19v-1a4 4 0 0 1 8 0v1M14 19v-1a3 3 0 0 1 5.5-1.7"/></svg>','Tanto faz']],v=>{curPersona=v;renderOptions();});
+  if(n==='casa')return renderSub('Qual subnicho?',[['quadros','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="9" cy="9" r="1.3"/></svg>','Quadros / Wall art'],['parede','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 12h18M9 5v3.5M15 5v3.5M9 12v3.5M15 12v3.5"/></svg>','Parede'],['moveis','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><path d="M4 11V9a2 2 0 0 1 4 0v2h8V9a2 2 0 0 1 4 0v2"/><rect x="3" y="11" width="18" height="6" rx="1.5"/><path d="M6 17v2M18 17v2"/></svg>','Móveis'],['outros','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/></svg>','Outros']],v=>{curSub=v;renderOptions();});
+  if(n==='pet')return renderSub('Qual animal?',[['cão','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><path d="M6 7l1.5-2.5L11 7h2l3.5-2.5L18 7v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5z"/><circle cx="9.5" cy="12" r="0.9" fill="currentColor"/><circle cx="14.5" cy="12" r="0.9" fill="currentColor"/></svg>','Cão'],['gato','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><path d="M5 7l1.5-3L10 7h4l3.5-3L19 7v6a5 5 0 0 1-5 5h-4a5 5 0 0 1-5-5z"/><circle cx="9.5" cy="12" r="0.9" fill="currentColor"/><circle cx="14.5" cy="12" r="0.9" fill="currentColor"/></svg>','Gato'],['outro','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="6" cy="12" r="1.4"/><circle cx="9.5" cy="8.5" r="1.4"/><circle cx="14.5" cy="8.5" r="1.4"/><circle cx="18" cy="12" r="1.4"/><path d="M8.5 16.5a3.5 3.5 0 0 1 7 0 2.5 2.5 0 0 1-2.5 2.5h-2a2.5 2.5 0 0 1-2.5-2.5z"/></svg>','Outro']],v=>{curSub=v;renderOptions();});
+  renderOptions();}
+function chip(on,label,onclick){return `<span onclick="${onclick}" style="display:inline-block;padding:7px 13px;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid ${on?'var(--orange)':'var(--line)'};color:${on?'#fff':'var(--mut)'};background:${on?'var(--orange)':'transparent'}">${label}</span>`;}
+function renderOptions(){center.innerHTML=`<div class="card-c"><h3>Como gerar as fotos?</h3><p>Ajuste o objetivo, quantidade, formato e qualidade. Tudo consome créditos.</p>
+  <div class="field"><label>Objetivo</label><div style="display:flex;gap:8px;flex-wrap:wrap">${chip(curGoal==='Marketplace','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M2 3h3l2.4 12h10l2-8H6"/></svg> Marketplace',"setOpt('goal','Marketplace')")}${chip(curGoal==='Redes Sociais','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M11 18h2"/></svg> Redes Sociais',"setOpt('goal','Redes Sociais')")}${chip(curGoal==='Ambos'||!curGoal,'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg> Ambos',"setOpt('goal','Ambos')")}</div></div>
+  <div class="field"><label>Quantas imagens</label><div style="display:flex;gap:8px">${chip(curCount===3,'3 fotos',"setOpt('count',3)")}${chip(curCount===5,'5 fotos',"setOpt('count',5)")}</div></div>
+  <div class="field"><label>Formato</label><div style="display:flex;gap:8px;flex-wrap:wrap">${['1:1','4:5','9:16','16:9'].map(a=>chip(curAspect===a,a,`setOpt('asp','${a}')`)).join('')}</div>
+    <div style="font-size:11px;color:var(--mut2);margin-top:7px;line-height:1.55"><b style="color:var(--mut)">1:1</b> Shopee, Mercado Livre, Amazon (capa de produto) · <b style="color:var(--mut)">4:5</b> feed do Instagram/Facebook · <b style="color:var(--mut)">9:16</b> Reels, Stories, TikTok, Shopee Vídeo · <b style="color:var(--mut)">16:9</b> YouTube, banner horizontal, site</div></div>
+  <div class="field" style="display:none"><label>Qualidade</label><div>${chip(true,'Premium',"setOpt('tier','premium')")}</div></div>
+  <div class="rowbtns" style="margin-top:8px"><button class="btn sec" onclick="renderNiche()">← Voltar</button><button class="btn acc" onclick="startGen()">Gerar →</button></div></div>`;}
+function setOpt(k,v){if(k==='goal')curGoal=v;if(k==='count')curCount=v;if(k==='asp')curAspect=v;if(k==='tier')curImgTier=v;renderOptions();}
+function startGen(){if(!curGoal)curGoal='Ambos';if(!KEYS.anthropic||!KEYS.fal){showGate();return;}center.style.cssText=addMode?`position:fixed;inset:52px 0 0 0;z-index:40;background:transparent;display:grid`:'';center.innerHTML=`<div style="display:flex;gap:13px;align-items:center;color:var(--mut)"><div class="spin"></div> diretor lendo o produto…</div>`;runAgent();}
+
+/* ===== ESTÚDIO DE MODA (mesmo canvas, modo moda) ===== */
+const MI={
+ roupa:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M8 3 4 6l2 3 1-.7V21h10V8.3l1 .7 2-3-4-3-2 2h-4z"/></svg>',
+ calcado:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 7v7h16a2 2 0 0 0 0-4l-6-1-3-3z"/><path d="M3 14h16"/></svg>',
+ joia:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M6 3h12l3 5-9 13L3 8z"/><path d="M3 8h18M9 3 6 8l6 13 6-13-3-5"/></svg>',
+ lingerie:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 7c2 0 3 2 9 2s7-2 9-2v3a6 6 0 0 1-6 4 6 6 0 0 1-6 0 6 6 0 0 1-6-4z"/></svg>',
+ praia:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>'
+};
+const MODA_NICHES=[['moda',MI.roupa,'Roupa','vestido, camiseta, conjunto…'],['calcados',MI.calcado,'Calçado','tênis, sandália, bota…'],['lingerie',MI.lingerie,'Lingerie','peças íntimas'],['beachwear',MI.praia,'Moda Praia','biquíni, maiô, saída…']];
+let curModaNiche='moda',curModaJoia='',curModaGender='auto',curModaModel='',curModaPack=5,curModaAspect='3:4';
+function renderModaNiche(){center.innerHTML=`<div class="card-c"><h3>Qual o tipo de peça?</h3><p>Define como a modelo veste o produto.</p>
+  <div class="goals">${MODA_NICHES.map(o=>`<div class="goal" onclick="pickModaNiche('${o[0]}')"><div class="gi">${o[1]}</div><b>${o[2]}</b><small>${o[3]}</small></div>`).join('')}</div>
+  <div class="rowbtns" style="margin-top:14px"><button class="btn sec" onclick="renderName()">← Nome</button></div></div>`;}
+function pickModaNiche(n){curModaNiche=n;curModaJoia='';if(n==='joia')return renderModaJoia();renderModaOptions();}
+function renderModaJoia(){center.innerHTML=`<div class="card-c"><h3>Qual tipo de joia / acessório?</h3><p>A IA enquadra o detalhe certo na modelo.</p>
+  <div class="goals">${[['anel','Anel'],['corrente','Corrente / Colar'],['brinco','Brinco'],['pulseira','Pulseira'],['tornozeleira','Tornozeleira'],['piercing','Piercing']].map(o=>`<div class="goal" onclick="pickModaJoia('${o[0]}')"><div class="gi">${MI.joia}</div><b>${o[1]}</b></div>`).join('')}</div>
+  <div class="rowbtns" style="margin-top:14px"><button class="btn sec" onclick="renderModaNiche()">← Voltar</button></div></div>`;}
+function pickModaJoia(v){curModaJoia=v;renderModaOptions();}
+function renderModaOptions(){center.innerHTML=`<div class="card-c"><h3>Como gerar os looks?</h3><p>Modelo, quantidade e formato. Tudo consome créditos.</p>
+  <div class="field"><label>Gênero da modelo</label><div style="display:flex;gap:8px;flex-wrap:wrap">${chip(curModaGender==='auto'||!curModaGender,'Automático',"setModaOpt('g','auto')")}${chip(curModaGender==='feminino','Feminino',"setModaOpt('g','feminino')")}${chip(curModaGender==='masculino','Masculino',"setModaOpt('g','masculino')")}</div></div>
+  <div class="field"><label>Perfil da modelo <small style="color:var(--mut2);font-weight:400">(opcional)</small></label><input id="modaModelInp" placeholder="ex: brasileira, 25-30 anos, cabelo cacheado" value="${(curModaModel||'').replace(/"/g,'&quot;')}"></div>
+  <div class="field"><label>Quantos looks</label><div style="display:flex;gap:8px">${chip(curModaPack===3,'3 looks · '+(3*CRED.modaLook)+'cr',"setModaOpt('pack',3)")}${chip(curModaPack===5,'5 looks · '+(5*CRED.modaLook)+'cr',"setModaOpt('pack',5)")}</div></div>
+  <div class="field"><label>Formato</label><div style="display:flex;gap:8px;flex-wrap:wrap">${['3:4','1:1','9:16'].map(a=>chip(curModaAspect===a,a,`setModaOpt('asp','${a}')`)).join('')}</div>
+    <div style="font-size:11px;color:var(--mut2);margin-top:7px;line-height:1.55"><b style="color:var(--mut)">3:4</b> retrato e-commerce (recomendado) · <b style="color:var(--mut)">1:1</b> Shopee · <b style="color:var(--mut)">9:16</b> Stories/Reels</div></div>
+  <div class="rowbtns" style="margin-top:8px"><button class="btn sec" onclick="${curModaNiche==='joia'?'renderModaJoia()':'renderModaNiche()'}">← Voltar</button><button class="btn acc" onclick="startGenModa()">Gerar →</button></div></div>`;}
+function setModaOpt(k,v){const mi=document.getElementById('modaModelInp');if(mi)curModaModel=mi.value;if(k==='g')curModaGender=v;if(k==='pack')curModaPack=v;if(k==='asp')curModaAspect=v;renderModaOptions();}
+function startGenModa(){const mi=document.getElementById('modaModelInp');if(mi)curModaModel=mi.value.trim();if(!KEYS.fashn){alert('Configure a chave do Motor de Moda em Chaves & Config em Chaves & Config.');goStation('chaves',null);return;}center.style.cssText=addMode?`position:fixed;inset:52px 0 0 0;z-index:40;background:transparent;display:grid`:'';center.innerHTML=`<div style="display:flex;gap:13px;align-items:center;color:var(--mut)"><div class="spin"></div> diretor de moda preparando os looks…</div>`;runModa();}
+async function analyzeProd(){const fb={produto:curName,cor:''};try{if(!KEYS.anthropic||!photos.length)return fb;
+  const content=photos.map(p=>({type:"image",source:{type:"base64",media_type:p.mime,data:p.b64}}));
+  content.push({type:"text",text:`Olhe a(s) foto(s) do produto (herói: "${curName}"). Responda SÓ JSON, sem texto fora: {"produto":"short English name of the product","cor":"the exact main color(s) in English"}`});
+  const data=await anthropicMsg({model:ANTHROPIC_MODEL,max_tokens:200,messages:[{role:"user",content}]});
+  let t=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').replace(/```json|```/g,'').trim();const o=JSON.parse(t);
+  return {produto:(o.produto||curName),cor:(o.cor||'')};}catch(_){return fb;}}
+function modaGenderWordOf(g){return g==='feminino'?'Brazilian female model':g==='masculino'?'Brazilian male model':'Brazilian model';}
+function fashnSlotPromptFrom(prod,slot){
+  const name=prod.modaName||prod.name||'product';const colorC=prod.modaColor?(' ('+prod.modaColor+')'):'';
+  const baseModel=prod.modaGender==='masculino'?'Brazilian male model, 25-35 years old, athletic build':prod.modaGender==='feminino'?'Brazilian woman model, 25-35 years old':'Brazilian model, 25-35 years old';
+  const model=baseModel+(prod.modaModel?(', '+prod.modaModel):'');
+  const cat=prod.modaNiche||'moda';const S1=slot+1;let P;
+  if(cat==='lingerie'){P={1:`${model}, pure white studio background, full body frontal pose, elegant and tasteful lingerie photo, professional soft lighting`,2:`${model}, bright minimal bedroom interior, white linen bedding, soft morning window light, elegant tasteful pose`,3:`${model}, modern luxury bathroom, marble surfaces, warm soft ambient light, elegant sophisticated pose`,4:`${model}, white background, 3/4 body angle, soft studio lighting, elegant focus on product details`,5:`${model}, bright minimal interior with neutral tones, soft diffused light, aspirational lifestyle, elegant and tasteful`};}
+  else if(cat==='beachwear'){P={1:`${model}, pure white studio background, full body frontal shot, natural pose, professional studio lighting`,2:`${model}, tropical beach with turquoise water, golden hour sunlight, natural relaxed pose, editorial quality`,3:`${model}, luxury pool area with lounge chairs, bright daylight, lifestyle shot, aspirational summer vibes`,4:`${model}, white background, 3/4 body shot, slightly angled, clean studio lighting`,5:`${model}, beach editorial, warm sand and palm trees, sunset light, aspirational Pinterest lifestyle quality`};}
+  else if(cat==='calcados'){P={1:`${model}, studio white background, full body shot showing shoes clearly, natural frontal pose, studio lighting`,2:`${model}, urban sidewalk with greenery, golden hour light, full body lifestyle shot, shoes clearly visible`,3:`${model}, modern bright interior, feet and legs detail shot, parquet floor, natural light, shoe as focus`,4:`${model}, white background, 3/4 body angle, shoes as main visual focus, clean studio lighting`,5:`${model}, aspirational lifestyle outdoor setting, full body, warm editorial tones, shoes highlighted`};}
+  else{P={1:`${model}, professional e-commerce white background, full body frontal shot, natural pose, studio lighting`,2:`${model}, bright modern Brazilian apartment interior, natural daylight, lifestyle fashion photo, full body shot`,3:`${model}, outdoor urban Brazilian street with greenery, golden hour sunlight, lifestyle editorial, dynamic natural pose`,4:`${model}, white background, 3/4 body shot, slightly angled pose, clean studio lighting`,5:`${model}, Scandinavian interior with light wood floors and plants, natural window light, aspirational lifestyle`};}
+  return (P[S1]||P[1])+'. Product: '+name+colorC+'. High quality e-commerce photo, photorealistic.';
+}
+async function runModa(){setFoot('Diretor de Moda preparando…','var(--orange)');if(!addMode)logEl.innerHTML='';log(tool(IC.spark,'r',`Moda · "${curName}"`,'run'),'raw');
+  const N=curModaPack;const refs=photos.map(p=>p.uri);const prodImg=photos[0].uri;
+  const an=await analyzeProd();log(tool(IC.spark,'r','Lendo o produto: '+(an.produto||curName)+(an.cor?(' · '+an.cor):''),'done'),'raw');
+  const _b=newProductBase();const baseX=_b.x;let baseY=_b.y;
+  const prod={id:'p'+(pc++),urls:refs.slice(),name:curName,x:baseX,y:baseY,aspect:curModaAspect,moda:true,modaNiche:curModaNiche,modaGender:curModaGender,modaModel:curModaModel,modaJoia:curModaJoia,modaName:an.produto,modaColor:an.cor};S.products.push(prod);
+  const labels=['Frontal estúdio','Lifestyle','Externo / detalhe','Ângulo 3/4','Lifestyle premium'];
+  let yy=baseY;
+  for(let sl=0;sl<N;sl++){const aspect=curModaAspect;const h=Math.round(230*aspRatio(aspect))+44+84;
+    const im={id:'i'+(ic++),parent:prod.id,x:baseX+420,y:yy,title:labels[sl]||('Look '+(sl+1)),etapa:'moda',aspect,tier:'premium',onmodel:true,moda:true,modaSlot:sl,modaSeed:Math.floor(Math.random()*4000000000),modaProdB64:prodImg,prompt:fashnSlotPromptFrom(prod,sl),fmts:[],refs:refs.slice(),origRefs:refs.slice(),url:null,fail:null,sel:false};
+    S.images.push(im);S.links.push({from:prod.id,to:im.id});yy+=h+38;}
+  const t=lastRun();if(t){t.className='st done';t.textContent='done';}
+  log(`Peça: <b>${curName}</b> · ${N} looks na modelo.`);log(tool('✎','g','Diretor de Moda · plano de '+N+' looks','done'),'raw');
+  setFoot('Vestindo na modelo…','var(--orange)');const wasAdd=addMode;addMode=false;photos=[];center.style.display='none';stage.style.display='block';if(!wasAdd)fitView();renderWorld();if(wasAdd){try{focusNode(prod.id);}catch(_){}}const _c=document.getElementById('cancelAdd');if(_c)_c.style.display='none';save();
+  await Promise.all(S.images.filter(im=>im.parent===prod.id).map(genImg));
+  log(tool('✓','k','Looks prontos','done'),'raw');log('Pronto. Clique num look pra vídeo, variações ou aprovar.');setFoot('Pronto — clique num nó');save();
+}
+/* ===== ESTÚDIO DE ACESSÓRIOS (foco no produto · Gemini/Nano Banana, preserva a peça) ===== */
+const ACESS_SUBS=[['relogio','Relógio'],['pulseira','Pulseira'],['anel','Anel'],['corrente','Corrente / Colar'],['brinco','Brinco'],['oculos','Óculos'],['tornozeleira','Tornozeleira'],['piercing','Piercing'],['outro','Outro acessório']];
+const _asvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">';
+const ACESS_ICONS={
+ relogio:_asvg+'<circle cx="12" cy="12" r="5"/><path d="M12 9.5v2.6l1.8 1.1"/><path d="M9.5 4h5M9.5 20h5"/></svg>',
+ pulseira:_asvg+'<ellipse cx="12" cy="12" rx="6.5" ry="8.5"/><circle cx="12" cy="3.7" r="1.2"/></svg>',
+ anel:_asvg+'<circle cx="12" cy="14.5" r="5.4"/><path d="m9 8.6 3-4 3 4"/></svg>',
+ corrente:_asvg+'<path d="M4 5a11 9 0 0 0 16 0"/><circle cx="12" cy="15.4" r="2.3"/></svg>',
+ brinco:_asvg+'<path d="M9 5a3 3 0 0 1 6 0"/><circle cx="12" cy="15" r="3.2"/></svg>',
+ oculos:_asvg+'<circle cx="7" cy="13" r="3.4"/><circle cx="17" cy="13" r="3.4"/><path d="M10.4 13h3.2M3.6 12 2 10M20.4 12 22 10"/></svg>',
+ tornozeleira:_asvg+'<ellipse cx="12" cy="11" rx="6" ry="7.2"/><circle cx="12" cy="19.4" r="1.3"/></svg>',
+ piercing:_asvg+'<circle cx="8" cy="7.5" r="2.1"/><circle cx="16" cy="16.5" r="2.1"/><path d="M9.5 9 14.5 15"/></svg>',
+ outro:_asvg+'<path d="M12 3.6l2.2 5.6L20 11l-5.8 1.9L12 18.4l-2.2-5.5L4 11l5.8-1.8z"/></svg>'
+};
+let curAcessSub='relogio',curAcessPack=5,curAcessAspect='1:1',curAcessObj='marketplace';
+function renderAcessNiche(){center.innerHTML=`<div class="card-c"><h3>Qual acessório?</h3><p>Foco total no produto — a IA não altera a peça.</p>
+  <div class="goals">${ACESS_SUBS.map(o=>`<div class="goal" onclick="pickAcessSub('${o[0]}')"><div class="gi">${ACESS_ICONS[o[0]]||MI.joia}</div><b>${o[1]}</b></div>`).join('')}</div>
+  <div class="rowbtns" style="margin-top:14px"><button class="btn sec" onclick="renderName()">← Nome</button></div></div>`;}
+function pickAcessSub(v){curAcessSub=v;renderAcessOptions();}
+function renderAcessOptions(){center.innerHTML=`<div class="card-c"><h3>Como gerar?</h3><p>Objetivo, quantidade e formato. Tudo consome créditos.</p>
+  <div class="field"><label>Objetivo</label><div style="display:flex;gap:8px;flex-wrap:wrap">${chip(curAcessObj==='marketplace','Marketplace',"setAcessOpt('obj','marketplace')")}${chip(curAcessObj==='redes','Redes Sociais',"setAcessOpt('obj','redes')")}${chip(curAcessObj==='ambos','Ambos',"setAcessOpt('obj','ambos')")}</div>
+    <div style="font-size:11px;color:var(--mut2);margin-top:7px;line-height:1.55"><b style="color:var(--mut)">Marketplace</b> foto limpa de listagem (branco, macro, ângulos) · <b style="color:var(--mut)">Redes</b> lifestyle aspiracional · <b style="color:var(--mut)">Ambos</b> mistura os dois</div></div>
+  <div class="field"><label>Quantas fotos</label><div style="display:flex;gap:8px">${chip(curAcessPack===3,'3 fotos · '+(3*CRED.imgPremium)+'cr',"setAcessOpt('pack',3)")}${chip(curAcessPack===5,'5 fotos · '+(5*CRED.imgPremium)+'cr',"setAcessOpt('pack',5)")}</div></div>
+  <div class="field"><label>Formato</label><div style="display:flex;gap:8px;flex-wrap:wrap">${['1:1','4:5','3:4','9:16'].map(a=>chip(curAcessAspect===a,a,`setAcessOpt('asp','${a}')`)).join('')}</div>
+    <div style="font-size:11px;color:var(--mut2);margin-top:7px;line-height:1.55"><b style="color:var(--mut)">1:1</b> capa Shopee · <b style="color:var(--mut)">4:5</b> feed · <b style="color:var(--mut)">3:4</b> retrato · <b style="color:var(--mut)">9:16</b> Stories/Reels</div></div>
+  <div class="rowbtns" style="margin-top:8px"><button class="btn sec" onclick="renderAcessNiche()">← Voltar</button><button class="btn acc" onclick="startGenAcess()">Gerar →</button></div></div>`;}
+function setAcessOpt(k,v){if(k==='pack')curAcessPack=v;if(k==='asp')curAcessAspect=v;if(k==='obj')curAcessObj=v;renderAcessOptions();}
+function startGenAcess(){if(!KEYS.anthropic||!KEYS.fal){showGate();return;}center.style.cssText=addMode?`position:fixed;inset:52px 0 0 0;z-index:40;background:transparent;display:grid`:'';center.innerHTML=`<div style="display:flex;gap:13px;align-items:center;color:var(--mut)"><div class="spin"></div> preparando as fotos do acessório…</div>`;runAcess();}
+function acessScenes(prod){
+  const name=(prod.acessName||prod.name||'product')+(prod.acessColor?(' ('+prod.acessColor+')'):'');
+  const sub=prod.acessSub||'relogio';
+  const part=sub==='anel'?"on a woman's hand, close-up of the hand and fingers only (no face, no full body)"
+    :sub==='brinco'?"on a woman's ear, close-up of the ear and side of the face only"
+    :sub==='corrente'?"on a woman's neck and decolletage, close-up of the neck only (no face)"
+    :sub==='pulseira'?"on a woman's wrist, close-up of the wrist and hand only (no full body)"
+    :sub==='relogio'?"on a woman's wrist, close-up of the forearm and wrist only (no full body)"
+    :sub==='tornozeleira'?"on a woman's ankle, close-up of the ankle and lower leg only"
+    :sub==='piercing'?"on the relevant body part, tight elegant macro close-up only"
+    :sub==='oculos'?"on a woman's face, close-up of the face wearing the eyewear (eyes and upper face)"
+    :"worn naturally, tight close-up focused only on the product";
+  const mkt=[
+    `Professional e-commerce product photograph of the ${name} alone, centered on a pure seamless white background, studio softbox lighting, soft natural shadow, ultra sharp, high-resolution catalog hero shot. No model, no person, no props, no text.`,
+    `Professional macro product photograph of the ${name} alone, extreme close-up revealing material, texture, finish and fine details, clean neutral background, even commercial lighting, tack sharp. No model, no person.`,
+    `Professional e-commerce product photograph of the ${name} alone on a clean white background, three-quarter 45-degree angle, studio lighting, crisp and sharp, catalog style. No model, no person.`,
+    `Clean e-commerce scale photo: the ${name} worn ${part}, bright neutral seamless background, product perfectly in focus and dominant, minimal distraction, professional commercial look.`,
+    `Professional e-commerce product photograph of the ${name} alone on a white background, alternate angle (side or back), studio lighting, sharp, catalog style. No model, no person.`
+  ];
+  const red=[
+    `Lifestyle social-media photo: the ${name} worn ${part}, aspirational real setting, warm natural light, tasteful styling and soft bokeh, Instagram editorial vibe, the product still the clear hero and in focus.`,
+    `Aspirational flat-lay of the ${name} on an elegant marble or light-wood surface with stylish complementary props, warm soft light, Pinterest editorial quality, product as hero.`,
+    `Lifestyle close-up: the ${name} worn ${part} in a stylish moment (café, golden hour or modern interior), cinematic warm tones, scroll-stopping social vibe, product sharp and in focus.`,
+    `Moody editorial photo of the ${name}, dramatic soft directional lighting, premium aspirational atmosphere, magazine-style composition, the product as the clear hero.`,
+    `Cozy candid lifestyle scene featuring the ${name} worn ${part}, natural everyday-luxury feel, warm light, social-media ready, product in focus.`
+  ];
+  return {mkt,red};
+}
+function acessPlan(prod,N){const sc=acessScenes(prod);const obj=prod.acessObj||'marketplace';
+  const mL=['Hero branco','Macro detalhe','Ângulo 45°','Em uso (escala)','Outro ângulo'];
+  const rL=['Lifestyle','Flat-lay','Em uso lifestyle','Editorial','Cena cozy'];
+  const plan=[];
+  if(obj==='marketplace'){for(let i=0;i<N;i++)plan.push({prompt:sc.mkt[i%sc.mkt.length],label:mL[i%mL.length]});}
+  else if(obj==='redes'){for(let i=0;i<N;i++)plan.push({prompt:sc.red[i%sc.red.length],label:rL[i%rL.length]});}
+  else{for(let i=0;i<N;i++){const k=Math.floor(i/2);if(i%2===0)plan.push({prompt:sc.mkt[k%sc.mkt.length],label:mL[k%mL.length]});else plan.push({prompt:sc.red[k%sc.red.length],label:rL[k%rL.length]});}}
+  return plan;
+}
+async function runAcess(){setFoot('Preparando acessório…','var(--orange)');if(!addMode)logEl.innerHTML='';log(tool(IC.spark,'r',`Acessório · "${curName}"`,'run'),'raw');
+  const N=curAcessPack;const refs=photos.map(p=>p.uri);
+  const an=await analyzeProd();log(tool(IC.spark,'r','Lendo o produto: '+(an.produto||curName)+(an.cor?(' · '+an.cor):''),'done'),'raw');
+  const _b=newProductBase();const baseX=_b.x;let baseY=_b.y;
+  const prod={id:'p'+(pc++),urls:refs.slice(),name:curName,x:baseX,y:baseY,aspect:curAcessAspect,acess:true,acessSub:curAcessSub,acessObj:curAcessObj,acessName:an.produto,acessColor:an.cor};S.products.push(prod);
+  const plan=acessPlan(prod,N);
+  let yy=baseY;
+  for(let sl=0;sl<N;sl++){const aspect=curAcessAspect;const h=Math.round(230*aspRatio(aspect))+44+84;
+    const im={id:'i'+(ic++),parent:prod.id,x:baseX+420,y:yy,title:plan[sl].label,etapa:'acessorio',aspect,tier:'premium',onmodel:false,prompt:plan[sl].prompt,fmts:[],refs:refs.slice(),origRefs:refs.slice(),url:null,fail:null,sel:false};
+    S.images.push(im);S.links.push({from:prod.id,to:im.id});yy+=h+38;}
+  const t=lastRun();if(t){t.className='st done';t.textContent='done';}
+  log(`Acessório: <b>${curName}</b> · ${N} fotos · ${curAcessObj==='marketplace'?'Marketplace (listagem)':curAcessObj==='redes'?'Redes (lifestyle)':'Marketplace + Redes'}.`);log(tool('✎','g','Diretor · plano de '+N+' fotos','done'),'raw');
+  setFoot('Gerando fotos…','var(--orange)');const wasAdd=addMode;addMode=false;photos=[];center.style.display='none';stage.style.display='block';if(!wasAdd)fitView();renderWorld();if(wasAdd){try{focusNode(prod.id);}catch(_){}}const _c=document.getElementById('cancelAdd');if(_c)_c.style.display='none';save();
+  await Promise.all(S.images.filter(im=>im.parent===prod.id).map(genImg));
+  log(tool('✓','k','Fotos prontas','done'),'raw');log('Pronto. Clique numa foto pra vídeo, variações ou aprovar.');setFoot('Pronto — clique num nó');save();
+}
+async function runAgent(){setFoot('Diretor lendo…','var(--orange)');if(!addMode)logEl.innerHTML='';log(tool('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="2.5"/></svg>','r',`Análise · lendo "${curName}"`,'run'),'raw');
+  const N=curCount;
+  const isModa=curNiche==='moda';
+  const hasSubject=curNiche!=='produto'&&curNiche!=='moda';
+  const subj = curNiche==='infantil'?'uma cena infantil/família apropriada e família-friendly (criança VESTIDA com roupa bonita e adequada, expressão feliz, podendo ter um adulto junto), ambiente limpo e agradável, foco total no produto, nada inadequado'
+    : curNiche==='casa'?('um ambiente real de casa/decoração BEM CUIDADO e elegante com foco em '+(curSub||'decoração')+', o produto aparecendo em uso/decoração realista e aspiracional (ex.: quadro emoldurado na parede de uma sala bonita, móvel num cômodo organizado e estiloso)')
+    : curNiche==='pet'?('um '+(curSub||'animal')+' real, fofo e saudável interagindo/usando o produto de forma natural, em ambiente limpo e agradável')
+    : curNiche==='produto'?'apenas o produto, SEM pessoas e SEM animais'
+    : (curPersona==='feminino'?'uma MULHER brasileira real, BEM VESTIDA e arrumada, em ambiente elegante e condizente com o produto, usando o produto':curPersona==='masculino'?'um HOMEM brasileiro real, BEM VESTIDO e arrumado, em ambiente elegante e condizente com o produto, usando o produto':'uma pessoa brasileira real, bem vestida e arrumada, em ambiente elegante e condizente com o produto, usando o produto');
+  const recipe = isModa
+    ? `OBJETIVO=MODA (still SEM manequim e SEM pessoa). Gere EXATAMENTE ${N} fotos profissionais de moda da peça: 1) efeito GHOST MANNEQUIN (manequim invisível — a roupa com volume e caimento natural, como se vestida, mas sem corpo/manequim aparecendo); 2) flatlay estiloso e bem produzido sobre superfície bonita; 3) peça pendurada/estilizada num ambiente elegante; 4) MACRO do tecido/costura/detalhe${N>=5?'; 5) composição editorial limpa com espaço pra texto':''}. NUNCA coloque a roupa numa pessoa nem num manequim visível/vazio. onmodel=false em TODAS. Produto fiel, nítido, sem deformar.`
+    : curGoal==='Marketplace'
+    ? `OBJETIVO=MARKETPLACE. Gere EXATAMENTE ${N} cenas de VENDA, cada uma de TIPO REALMENTE diferente (NUNCA repita o mesmo enquadramento ou ângulo), com o PRODUTO em FOCO TOTAL, nítido e fiel: 1) HERO em fundo branco/cinza-claro limpo (produto inteiro); 2) MACRO bem fechado num detalhe (textura/material/acabamento); 3) ângulo 45° mostrando volume e profundidade${N>=5?'; 4) vista lateral OU de topo; 5) produto em uso funcional realista':''}. ${hasSubject?('No MÁXIMO 1 cena com onmodel=true ('+subj+') e só se ajudar a vender; as outras SÓ o produto.'):'onmodel=false em TODAS.'} PROIBIDO: inventar objetos/logos/texto que não existem, deformar o produto, deixar o produto fora de foco ou cortado.`
+    : curGoal==='Redes Sociais'
+    ? `OBJETIVO=REDES SOCIAIS. Gere EXATAMENTE ${N} cenas lifestyle, ângulos diferentes: flatlay; ambiente real brasileiro BONITO e bem cuidado; ${hasSubject?(subj+' usando o produto em 2 cenas (onmodel=true)'):'só o produto em ambiente real'}; e um close de detalhe. Produto SEMPRE em foco, nítido e fiel; nada inventado nem deformado.`
+    : `OBJETIVO=AMBOS. Gere EXATAMENTE ${N} cenas, ângulos REALMENTE diferentes: METADE venda (hero fundo limpo, macro de detalhe — produto em foco total) e METADE social (${hasSubject?(subj+' usando o produto, onmodel=true'):'ambiente real'}). Produto SEMPRE nítido e fiel; PROIBIDO inventar objetos/texto, deformar ou desfocar o produto.`;
+  const system=`Você é DIRETOR DE ARTE para a Shopee Brasil (NÃO editorial/Vogue). PRODUTO HERÓI EXATO: "${curName}". Foque só nele. ${photos.length>1?'Você recebeu várias fotos do MESMO produto em ângulos diferentes — use todas pra entender forma, cor e material.':''}
+Cada "prompt" (inglês) começa com "Keep the identity of the ${curName} exact (color, shape, material, logos, real proportions and true-to-life size) but reshoot it from a NEW camera angle and composition:"; descreve ângulo, ambiente, luz, enquadramento; fotorrealista marketplace. Cada cena = ângulo REALMENTE diferente. MANTENHA a escala e as proporções reais do produto (não aumente nem diminua de forma irreal; havendo pessoa ou mão, o produto deve ter tamanho realista relativo). REGRA ANTI-ERRO: o produto sempre NÍTIDO, EM FOCO e por inteiro (não cortado, não borrado); NUNCA invente logos, texto, botões, peças ou objetos que não existem na foto original; sem deformações, sem texto distorcido, sem duplicar o produto. Prompts curtos e concretos (1-2 frases), descrevendo só ângulo + fundo + luz.
+"onmodel"=true só quando há um SUJEITO real (pessoa/criança/animal conforme o nicho) JÁ usando/interagindo com o produto na imagem${hasSubject?('. Quando onmodel=true, o sujeito é: '+subj):'; neste caso use onmodel=false em TODAS as cenas'}.
+REGRA DE VALOR (cena de uso): toda foto em uso/lifestyle deve VALORIZAR o produto e justificar o preço — pessoa bem vestida e arrumada, ambiente bonito, organizado e CONDIZENTE com a categoria e o nível do produto (um produto premium pede cenário premium; um produto simples, um cenário caprichado e limpo). NUNCA uma pessoa malvestida, cenário bagunçado, feio ou desalinhado com o valor do produto.${isModa?'\nNICHO MODA: gere fotos profissionais da PEÇA sem pessoa e sem manequim visível — efeito ghost mannequin (manequim invisível: a roupa com volume/caimento natural, como vestida, mas sem corpo aparecendo), flatlay estiloso e peça estilizada em ambiente elegante. NUNCA vista numa pessoa nem mostre manequim. onmodel=false sempre.':''}
+"videos": 2-3 ideias de vídeo. Cada {format(curto pt), prompt(inglês: SÓ o movimento sutil — sujeito/câmera/cena, produto estável; NÃO coloque a fala no prompt), fala(${curNiche==='pessoa'?'o ROTEIRO LITERAL em português que a PESSOA fala':'VAZIO se não houver pessoa falando'})}. ${curNiche==='pessoa'?('Quem aparece e fala = '+subj+'. Estilo INFLUENCER — "vender sem vender", gerando DESEJO de compra, soando como PESSOA REAL gravando no celular, NÃO anúncio. Tom casual brasileiro ("gente","olha","sabe","tipo"). EVITE adjetivos de propaganda (incrível, perfeito, maravilhoso, sensacional). Comente um detalhe CONCRETO do '+curName+' + uma reação real + um fecho leve. 2-3 frases, ~22-32 palavras. Ex: "Olha o tamanho desse copo... cabe vitamina pra família toda, viu? Uso de manhã e lavo num segundo. Tô amando."'):'Sem pessoa falando: os vídeos são movimento de câmera/cena cinematográfico do produto; deixe "fala" vazia.'}
+${recipe}
+Formatos: Unboxing, Street Style, Get Ready With Me, No Carro, Provador, Detalhe, Demonstração, Review.
+SOMENTE JSON: {"produto":{"nome":"${curName}","categoria":"","cor":"","material":"","publico":""},"racional":"1 frase pt-BR","cenas":[{"etapa":"","titulo":"","aspect":"1:1|3:4","onmodel":false,"prompt":"","videos":[{"format":"","prompt":"","fala":""}]}]}`;
+  try{const content=photos.map(p=>({type:"image",source:{type:"base64",media_type:p.mime,data:p.b64}}));content.push({type:"text",text:`Produto: ${curName}. Objetivo: ${curGoal}. Só JSON.`});
+    const resp=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":KEYS.anthropic,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:ANTHROPIC_MODEL,max_tokens:3800,system,messages:[{role:"user",content}]})});
+    const data=await resp.json();if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
+    let txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').replace(/```json|```/g,'').trim();const plan=JSON.parse(txt);
+    const refs=photos.map(p=>p.uri);const _b=newProductBase();const baseX=_b.x;let baseY=_b.y;
+    const prod={id:'p'+(pc++),urls:refs.slice(),name:curName,x:baseX,y:baseY,aspect:curAspect};S.products.push(prod);
+    let yy=baseY;(plan.cenas||[]).slice(0,curCount).forEach(c=>{const aspect=curAspect||c.aspect||'1:1';const h=Math.round(230*aspRatio(aspect))+44+84;const im={id:'i'+(ic++),parent:prod.id,x:baseX+420,y:yy,title:c.titulo,etapa:c.etapa,aspect,tier:curImgTier,onmodel:!!c.onmodel,prompt:c.prompt,fmts:c.videos||[],refs:refs.slice(),origRefs:refs.slice(),url:null,fail:null,sel:false};S.images.push(im);S.links.push({from:prod.id,to:im.id});yy+=h+38;});
+    const t=lastRun();if(t){t.className='st done';t.textContent='done';}
+    log(`Produto: <b>${plan.produto.nome}</b>. Objetivo: <b>${curGoal}</b>.`);log(plan.racional,'msg think');log(tool('✎','g','Diretor · plano de '+N+' cenas','done'),'raw');
+    setFoot('Gerando suas imagens…','var(--orange)');const wasAdd=addMode;addMode=false;photos=[];center.style.display='none';stage.style.display='block';if(!wasAdd)fitView();renderWorld();if(wasAdd){try{focusNode(prod.id);}catch(_){}}const _c=document.getElementById('cancelAdd');if(_c)_c.style.display='none';save();
+    await Promise.all(S.images.filter(im=>im.parent===prod.id).map(genImg));
+    log(tool('✓','k','Imagens prontas','done'),'raw');log(`Pronto. Clique numa imagem pra ver as opções.`);setFoot('Pronto — clique num nó');save();
+  }catch(err){center.style.cssText='';center.innerHTML=`<div class="err" style="max-width:520px">O diretor falhou: ${(err&&err.message)||err}</div>`;setFoot('Erro','#c2410c');}}
+
+let tx=120,ty=10,scale=.78;
+function applyT(){world.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`;updateMini();}
+function zoomBy(f){scale=Math.max(.25,Math.min(1.8,scale*f));applyT();}
+function fitView(){tx=120;ty=10;scale=.78;applyT();}
+stage.addEventListener('mousedown',e=>{if(e.target.closest('.node')||e.target.closest('.rail'))return;stage.classList.add('grab');pop.style.display='none';
+  const sx=e.clientX-tx,sy=e.clientY-ty;function mv(ev){tx=ev.clientX-sx;ty=ev.clientY-sy;applyT();}
+  function up(){stage.classList.remove('grab');window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);}
+  window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);});
+stage.addEventListener('wheel',e=>{e.preventDefault();zoomBy(e.deltaY<0?1.08:.93);},{passive:false});
+function findNode(id){return S.products.find(x=>x.id===id)||S.images.find(x=>x.id===id)||S.videos.find(x=>x.id===id)||(S.finals||[]).find(x=>x.id===id);}
+function prodOf(node){if(!node)return null;if(node.id[0]==='p')return node;
+  if(node.id[0]==='i'){let im=node,guard=0;while(im&&im.parent&&im.parent[0]!=='p'&&guard++<60){im=S.images.find(x=>x.id===im.parent);}return im?S.products.find(p=>p.id===im.parent):null;}
+  if(node.id[0]==='v'){const im=S.images.find(x=>x.id===node.parent);return im?prodOf(im):null;}
+  if(node.id[0]==='f'){const l=S.links.find(x=>x.to===node.id);const v=l&&findNode(l.from);return v?prodOf(v):null;}
+  return null;}
+function hidden(node){if(!node||node.id[0]==='p')return false;const p=prodOf(node);return !!(p&&p.collapsed);}
+function toggleCollapse(pid,e){if(e)e.stopPropagation();const p=S.products.find(x=>x.id===pid);if(!p)return;p.collapsed=!p.collapsed;pop.style.display='none';renderWorld();save();}
+function nodeW(id){return id[0]==='p'?230:id[0]==='i'?230:id[0]==='f'?200:170;}
+function nodeH(o){if(o.id[0]==='p')return Math.round(230*aspRatio(o.aspect||'1:1'))+44;if(o.id[0]==='i')return Math.round(230*aspRatio(o.aspect||'1:1'))+44+(o.url?84:0);if(o.id[0]==='f')return Math.round(200*16/9)+44+84;return Math.round(170*aspRatio(o.aspect||'9:16'))+40+(o.url?84:0);}
+function freeSpot(srcId,w,h){const src=findNode(srcId);let x=src.x+nodeW(srcId)+160,y=src.y;
+  function hit(X,Y){return [...S.products,...S.images,...S.videos,...(S.finals||[])].some(n=>{const r={x:n.x,y:n.y,w:nodeW(n.id),h:nodeH(n)};return X<r.x+r.w+30&&X+w+30>r.x&&Y<r.y+r.h+30&&Y+h+30>r.y;});}
+  let g=0;while(hit(x,y)&&g++<400)y+=46;return{x,y};}
+function childSpot(parentId,w,h){const src=findNode(parentId);if(!src)return{x:0,y:0};const sibs=S.links.filter(l=>l.from===parentId).length;return {x:src.x+nodeW(parentId)+90,y:src.y+sibs*(h+26)};}
+function focusNode(id){const o=findNode(id);if(!o)return;tx=180-o.x*scale;ty=140-o.y*scale;applyT();}
+function newProductBase(){if(!S.products.length)return{x:80,y:560};
+  const vw=window.innerWidth-340;let bx=Math.round((vw*0.26 - tx)/scale),by=Math.round((window.innerHeight*0.30 - ty)/scale);
+  function hit(X,Y){return [...S.products,...S.images,...S.videos,...(S.finals||[])].some(n=>{const r={x:n.x,y:n.y,w:nodeW(n.id),h:nodeH(n)};return X<r.x+r.w+50&&X+240+50>r.x&&Y<r.y+r.h+30&&Y+280>r.y;});}
+  let g=0;while(hit(bx,by)&&g++<18)by+=80;return{x:bx,y:by};}
+function goToProduct(pid){if(!pid)return;const p=S.products.find(x=>x.id===pid);if(!p)return;if(scale<.55)scale=.7;focusNode(pid);}
+function toggleNav(){const n=document.getElementById('nav');if(!n)return;const show=(n.style.display==='none'||!n.style.display);n.style.display=show?'flex':'none';if(show)updateMini();}
+function populateGoto(){const s=document.getElementById('gotoSel');if(!s)return;s.innerHTML='<option value="">Ir para produto…</option>'+S.products.map(p=>`<option value="${p.id}">${(p.name||'Produto').replace(/</g,'')}</option>`).join('');}
+function miniJump(e){const mini=document.getElementById('mini'),m=mini&&mini._m;if(!m)return;const r=mini.getBoundingClientRect(),cx=e.clientX-r.left,cy=e.clientY-r.top,wx=m.minX+(cx-m.ox)/m.s,wy=m.minY+(cy-m.oy)/m.s;tx=window.innerWidth/2-wx*scale;ty=window.innerHeight/2-wy*scale;applyT();}
+function updateMini(){const mini=document.getElementById('mini');if(!mini)return;const nodes=[...S.products,...S.images,...S.videos,...(S.finals||[])].filter(n=>!hidden(n));if(!nodes.length){mini.style.display='none';return;}mini.style.display='block';
+  let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;nodes.forEach(n=>{const w=nodeW(n.id),h=nodeH(n);minX=Math.min(minX,n.x);minY=Math.min(minY,n.y);maxX=Math.max(maxX,n.x+w);maxY=Math.max(maxY,n.y+h);});
+  const W=window.innerWidth,H=window.innerHeight,vx0=(0-tx)/scale,vy0=(0-ty)/scale,vx1=(W-tx)/scale,vy1=(H-ty)/scale;
+  minX=Math.min(minX,vx0);minY=Math.min(minY,vy0);maxX=Math.max(maxX,vx1);maxY=Math.max(maxY,vy1);
+  const pad=60;minX-=pad;minY-=pad;maxX+=pad;maxY+=pad;const bw=(maxX-minX)||1,bh=(maxY-minY)||1,MW=176,MH=116,s=Math.min(MW/bw,MH/bh),ox=(MW-bw*s)/2,oy=(MH-bh*s)/2;
+  const dark=document.body.classList.contains('dark'),surf=dark?'#15171d':'#ffffff',imgCol=dark?'#9aa0aa':'#b4b9c2';
+  let svg=`<svg width="${MW}" height="${MH}" style="display:block;cursor:pointer">`;
+  svg+=`<rect x="0" y="0" width="${MW}" height="${MH}" fill="${surf}"/>`;
+  nodes.forEach(n=>{const w=nodeW(n.id),h=nodeH(n),col=n.id[0]==='p'?'#ff4d1c':(n.id[0]==='v'?'#7b2fff':imgCol);svg+=`<rect x="${(ox+(n.x-minX)*s).toFixed(1)}" y="${(oy+(n.y-minY)*s).toFixed(1)}" width="${Math.max(2.5,w*s).toFixed(1)}" height="${Math.max(2.5,h*s).toFixed(1)}" rx="1.5" fill="${col}" opacity=".92"/>`;});
+  svg+=`<rect x="${(ox+(vx0-minX)*s).toFixed(1)}" y="${(oy+(vy0-minY)*s).toFixed(1)}" width="${((vx1-vx0)*s).toFixed(1)}" height="${((vy1-vy0)*s).toFixed(1)}" fill="rgba(255,77,28,.12)" stroke="#ff4d1c" stroke-width="1.5" rx="2"/></svg>`;
+  mini.innerHTML=svg;mini._m={minX,minY,s,ox,oy};}
+function startCanvas(){center.style.display='none';stage.style.display='block';fitView();renderWorld();}
+
+function descendantsOf(p){return [...S.images,...S.videos,...(S.finals||[])].filter(n=>{const q=prodOf(n);return q&&q.id===p.id;});}
+let _tipT=null;const TIP_DEFAULT='Clique num nó pra ver as opções · arraste pra mover · recolha (⊟) a foto principal pra mover o projeto inteiro';
+function flashTip(msg){const t=document.querySelector('.tip');if(!t)return;t.textContent=msg;t.style.borderColor='var(--orange)';t.style.color='var(--orange)';clearTimeout(_tipT);_tipT=setTimeout(()=>{t.textContent=TIP_DEFAULT;t.style.borderColor='';t.style.color='';},2800);}
+world.addEventListener('mousedown',e=>{if(e.target.closest('.exp')||e.target.closest('button')||e.target.closest('.cardfail'))return;const nd=e.target.closest('.node');if(!nd)return;e.stopPropagation();
+  const o=findNode(nd.id);if(!o)return;
+  if(o.id[0]==='p'&&!o.collapsed){flashTip('Recolha o projeto no botão ⊟ pra mover a foto principal junto com as geradas.');return;}
+  const sx=e.clientX,sy=e.clientY,ox=o.x,oy=o.y;let moved=false;
+  const group=(o.id[0]==='p')?descendantsOf(o):[];const gOrig=group.map(d=>({d,x:d.x,y:d.y}));
+  function mv(ev){if(Math.abs(ev.clientX-sx)+Math.abs(ev.clientY-sy)>5){moved=true;const ddx=(ev.clientX-sx)/scale,ddy=(ev.clientY-sy)/scale;o.x=ox+ddx;o.y=oy+ddy;nd.style.left=o.x+'px';nd.style.top=o.y+'px';gOrig.forEach(g=>{g.d.x=g.x+ddx;g.d.y=g.y+ddy;});drawWires();}}
+  function up(ev){window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);if(moved)saveSoon();}
+  window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);});
+
+function anc(o){const w=nodeW(o.id);return {rx:o.x+w,ry:o.y+nodeH(o)/2,lx:o.x,ly:o.y+nodeH(o)/2};}
+function drawWires(){let p='';S.links.forEach(l=>{const a=findNode(l.from),b=findNode(l.to);if(!a||!b)return;if(hidden(a)||hidden(b))return;const A=anc(a),B=anc(b);const dx=Math.max(40,Math.abs(B.lx-A.rx)*.5);
+    p+=`<path d="M ${A.rx} ${A.ry} C ${A.rx+dx} ${A.ry}, ${B.lx-dx} ${B.ly}, ${B.lx} ${B.ly}" fill="none" stroke="var(--wire)" stroke-width="2.5"/>`;});
+  let maxR=1400,maxB=1200;[...S.products,...S.images,...S.videos,...(S.finals||[])].forEach(n=>{if(hidden(n))return;const r=n.x+nodeW(n.id),b=n.y+nodeH(n);if(r>maxR)maxR=r;if(b>maxB)maxB=b;});
+  const W=maxR+500,H=maxB+500;wires.setAttribute('width',W);wires.setAttribute('height',H);wires.setAttribute('viewBox',`0 0 ${W} ${H}`);wires.innerHTML=p;}
+
+function imgMedia(im){if(im.url)return `<img src="${im.url}">`;if(im.fail)return `<div class="cardfail" style="font-size:10px;color:#c2410c;padding:10px;text-align:center"><b>falhou</b><br><span style="font-size:9px;opacity:.85;display:block;margin:4px 0;word-break:break-word;line-height:1.35">${(''+im.fail).slice(0,130)}</span><span style="text-decoration:underline;cursor:pointer" onclick="regenImg('${im.id}',event)">tentar de novo</span> · <span style="text-decoration:underline;cursor:pointer" onclick="removeNode('${im.id}',event)">fechar</span></div>`;return `<div class="pend"><div class="spin"></div>gerando…</div>`;}
+function vidMedia(v){if(v.url)return `<video src="${v.url}" controls autoplay muted loop playsinline></video>`;if(v.fail)return `<div class="cardfail" style="font-size:10px;color:#c2410c;padding:10px;text-align:center"><b>falhou</b><br><span style="font-size:9px;opacity:.85;display:block;margin:4px 0;word-break:break-word;line-height:1.35">${(''+v.fail).slice(0,130)}</span><span style="text-decoration:underline;cursor:pointer" onclick="regenVideo('${v.id}',event)">tentar de novo</span> · <span style="text-decoration:underline;cursor:pointer" onclick="removeNode('${v.id}',event)">fechar</span></div>`;return `<div class="pend"><div class="spin"></div>gerando vídeo…<br><span style="font-size:9px">~1-3min</span></div>`;}
+function removeNode(id,e){if(e)e.stopPropagation();pop.style.display='none';S.images=S.images.filter(x=>x.id!==id);S.videos=S.videos.filter(x=>x.id!==id);if(S.finals)S.finals=S.finals.filter(x=>x.id!==id);S.links=S.links.filter(l=>l.from!==id&&l.to!==id);renderWorld();save();}
+function askDelete(id){const o=findNode(id);if(!o)return;const isImg=(o.id[0]==='i');const kids=isImg?S.videos.filter(v=>v.parent===id).length:0;const extra=kids?(' e '+kids+' vídeo(s) ligado(s)'):'';if(!confirm('Apagar esta '+(isImg?'imagem':'vídeo')+extra+'? Isso não pode ser desfeito.'))return;if(isImg){S.videos.filter(v=>v.parent===id).map(v=>v.id).forEach(vid=>{S.videos=S.videos.filter(x=>x.id!==vid);S.links=S.links.filter(l=>l.from!==vid&&l.to!==vid);});}removeNode(id);}
+function delProd(id,e){if(e)e.stopPropagation();const p=S.products.find(x=>x.id===id);if(!p)return;
+  const delImgs=S.images.filter(im=>{const q=prodOf(im);return q&&q.id===id;});
+  const delVids=S.videos.filter(v=>{const q=prodOf(v);return q&&q.id===id;});
+  const n=delImgs.length+delVids.length;
+  if(!confirm('Apagar a matriz "'+(p.name||'produto')+'"'+(n?(' e '+n+' item(ns) gerado(s) a partir dela'):'')+'? Não dá pra desfazer.'))return;
+  const dead=new Set([id,...delImgs.map(x=>x.id),...delVids.map(x=>x.id)]);
+  S.images=S.images.filter(im=>!dead.has(im.id));
+  S.videos=S.videos.filter(v=>!dead.has(v.id));
+  S.products=S.products.filter(x=>x.id!==id);
+  if(S.finals)S.finals=S.finals.filter(f=>!dead.has(f.id));
+  S.links=S.links.filter(l=>!dead.has(l.from)&&!dead.has(l.to));
+  if(pop)pop.style.display='none';renderWorld();save();}
+function prodHtml(p){const kids=S.images.filter(im=>{const q=prodOf(im);return q&&q.id===p.id;}).length+S.videos.filter(v=>{const q=prodOf(v);return q&&q.id===p.id;}).length;
+  return `<div class="node nprod" id="${p.id}" style="left:${p.x}px;top:${p.y}px;width:230px"><div class="inner">${p.urls.length>1?`<div class="badge cnt" style="right:auto;left:8px">+${p.urls.length-1}</div>`:''}
+  <button class="exp" onclick="toggleCollapse('${p.id}',event)" title="${p.collapsed?'Expandir':'Recolher'} workflow" style="position:absolute;top:7px;right:7px;width:26px;height:26px;border:none;border-radius:7px;background:rgba(20,21,25,.82);color:#fff;box-shadow:var(--shadow);cursor:pointer;font-size:14px;z-index:5">${p.collapsed?'⊞':'⊟'}</button>
+  <div class="media" style="aspect-ratio:${aspCss(p.aspect)}"><img src="${p.urls[0]}"></div><div class="lab">${p.name}<small>${p.collapsed?(kids+' itens recolhidos'):'base · '+(p.aspect||'1:1')}</small></div>${p.collapsed?'':`<div class="acts"><button class="b-more" onclick="openTitle('${p.id}',event)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M20.6 13.4 12 22l-9-9V3h10z"/><circle cx="7.5" cy="7.5" r="1.3"/></svg>Título & SEO</button><button class="b-more" onclick="delProd('${p.id}',event)" style="background:rgba(194,65,12,.1);color:#c2410c;margin-left:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>Apagar</button></div>`}</div></div>`;}
+function expBtn(id,side){return `<button class="exp" onclick="lightbox('${id}',event)" style="position:absolute;top:7px;${side}:7px;width:26px;height:26px;border:none;border-radius:7px;background:rgba(255,255,255,.92);box-shadow:var(--shadow);cursor:pointer;font-size:13px;z-index:5">⛶</button>`;}
+function imgHtml(im){return `<div class="node nimg ${im.sel?'sel':''}" id="${im.id}" style="left:${im.x}px;top:${im.y}px;width:230px"><div class="port"></div><div class="okmark">✓</div><div class="inner">
+  ${im.onmodel?'<div class="badge model">com modelo</div>':''}${im.url?expBtn(im.id,'right'):''}
+  <div class="media" style="aspect-ratio:${aspCss(im.aspect)}">${imgMedia(im)}</div><div class="lab">${im.title}<small>${im.etapa||''}${im.tier==='basico'?' · GPT':' · Nano'}</small></div>
+  ${im.url?`<div class="acts"><button class="b-dl" onclick="dl('${im.id}',event)">${IC.dl} Baixar</button><button class="b-more" onclick="openNode('${im.id}',event)">${IC.more} Mais opções</button></div>`:''}</div></div>`;}
+function vidHtml(v){return `<div class="node nvid ${v.sel?'sel':''}" id="${v.id}" style="left:${v.x}px;top:${v.y}px;width:170px"><div class="port"></div><div class="okmark">✓</div><div class="inner">
+  <div class="badge vid">${IC.video} ${v.format}</div>${v.url?expBtn(v.id,'left'):''}
+  <div class="media" style="aspect-ratio:${aspCss(v.aspect||'9:16')}">${vidMedia(v)}</div><div class="lab">${v.format}<small>${v.dur||'5'}s · ${v.tier==='premium'?'Pro':'Padrão'} · ${v.audio?'fala PT':'cinema'}</small></div>
+  ${v.url?`<div class="acts"><button class="b-dl" onclick="dl('${v.id}',event)">${IC.dl} Baixar</button><button class="b-more" onclick="openNode('${v.id}',event)">${IC.more} Mais opções</button></div>`:''}</div></div>`;}
+function finalHtml(f){return `<div class="node nfinal ${f.sel?'sel':''}" id="${f.id}" style="left:${f.x}px;top:${f.y}px;width:200px"><div class="port"></div><div class="okmark">✓</div><div class="inner">
+  <div class="badge vid" style="background:rgba(255,77,28,.92)">⧉ Vídeo final</div>
+  <div class="media" style="aspect-ratio:9/16"><video id="vid_${f.id}" src="${f.clips[0]}" controls playsinline></video></div>
+  <div class="lab">Anúncio final<small>${f.clips.length} cenas</small></div>
+  <div class="acts"><button class="b-dl" onclick="mergeCommercial('${f.id}',event)">${IC.dl} Baixar comercial</button><button class="b-more" onclick="setMusic('${f.id}',event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><path d="M9 18V5l11-2v11"/><circle cx="6" cy="18" r="2.8"/><circle cx="17" cy="14" r="2.8"/></svg> ${f.music?'Trilha ✓':'Add trilha'}</button></div></div></div>`;}
+function renderWorld(){let h='';S.products.forEach(p=>h+=prodHtml(p));S.images.forEach(im=>{if(!hidden(im))h+=imgHtml(im);});S.videos.forEach(v=>{if(!hidden(v))h+=vidHtml(v);});(S.finals||[]).forEach(f=>{if(!hidden(f))h+=finalHtml(f);});
+  world.innerHTML=`<svg id="wires"></svg>`+h;wires=document.getElementById('wires');drawWires();(S.finals||[]).forEach(f=>{if(!hidden(f))attachSeq(f.id);});populateGoto();updateMini();}
+function attachSeq(fid){const f=(S.finals||[]).find(x=>x.id===fid);if(!f)return;const el=document.getElementById('vid_'+fid);if(!el)return;let i=0;el.onended=()=>{i=(i+1)%f.clips.length;el.src=f.clips[i];el.play().catch(()=>{});};}
+function replaceNode(id,html){const el=document.getElementById(id);if(el)el.outerHTML=html;drawWires();saveSoon();}
+
+function showPop(id,html){const r=document.getElementById(id).getBoundingClientRect();pop.innerHTML=html;pop.style.display='block';
+  let left=r.right+10,top=r.top;if(left+250>innerWidth)left=r.left-250;if(top+pop.offsetHeight>innerHeight)top=Math.max(8,innerHeight-pop.offsetHeight-12);pop.style.left=Math.max(8,left)+'px';pop.style.top=Math.max(8,top)+'px';}
+function openNode(id,e){if(e)e.stopPropagation();const o=findNode(id);if(o.id[0]==='p'||!o.url){pop.style.display='none';return;}
+  if(o.id[0]==='i'){showPop(id,`<h4>${o.title}</h4>
+    <div class="opt vid" onclick="menuFormats('${id}')"><span class="pic">${IC.video}</span>Gerar vídeo</div>
+    <div class="opt" onclick="menuVar('${id}')"><span class="pic">${IC.refresh}</span>Gerar variações</div>
+    <div class="opt" onclick="menuEdit('${id}')"><span class="pic">${IC.edit}</span>Editar imagem</div>
+    <div class="opt ap" onclick="approve('${id}')"><span class="pic">${IC.check}</span>${o.sel?'Remover aprovação':'Aprovar'}</div>
+    <div class="opt" onclick="askDelete('${id}')"><span class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></span>Excluir</div>`);}
+  else{showPop(id,`<h4>Vídeo · ${o.format}</h4>
+    <div class="opt" onclick="regenVideo('${id}',event)"><span class="pic">${IC.refresh}</span>Refazer</div>
+    <div class="opt ap" onclick="approveV('${id}')"><span class="pic">${IC.check}</span>${o.sel?'Remover aprovação':'Aprovar'}</div>
+    <div class="opt" onclick="estVideo('${id}')"><span class="pic">${IC.ext}</span>Estender (continuação)</div>
+    <div class="opt" onclick="juntar()"><span class="pic">${IC.cut}</span>Juntar aprovados num final</div>
+    <div class="opt" onclick="askDelete('${id}')"><span class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></span>Excluir vídeo</div>`);}}
+let curVidDur='5';
+function durCss(on){return `display:inline-block;padding:6px 13px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid ${on?'var(--orange)':'var(--line)'};color:${on?'#fff':'var(--mut)'};background:${on?'var(--orange)':'transparent'}`;}
+function setDur(d,el){curVidDur=d;[...el.parentNode.querySelectorAll('.durc')].forEach(x=>x.style.cssText=durCss(x.dataset.d===d));}
+function setVidTier(t,el){curVidTier=t;[...el.parentNode.querySelectorAll('.tierc')].forEach(x=>x.style.cssText=durCss(x.dataset.t===t));}
+function setUgcPersona(p,el){ugcPersona=p;[...el.parentNode.querySelectorAll('.perc')].forEach(x=>x.style.cssText=durCss(x.dataset.p===p)+';margin:0 5px 5px 0;display:inline-block');}
+function menuFormats(id){const im=S.images.find(x=>x.id===id);
+  const gl=(t)=>`<div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.55;margin:11px 4px 5px;font-weight:700">${t}</div>`;
+  let h=`<span class="back" onclick="openNode('${id}')">← voltar</span><h4>Gerar vídeo</h4>
+  <div style="display:flex;gap:7px;margin:0 4px 4px"><span class="durc" data-d="5" style="${durCss(curVidDur==='5')}" onclick="setDur('5',this)">5s</span><span class="durc" data-d="10" style="${durCss(curVidDur==='10')}" onclick="setDur('10',this)">10s</span></div>`;
+  if(im&&im.moda){h+=gl('Vídeo de moda · '+vidCost(curVidDur,false)+'cr');MODA_FMTS.forEach((f,i)=>h+=`<div class="opt vid" onclick="genVideo('${id}',${i},'moda')"><span class="pic">${IC.video}</span>${f.format}</div>`);
+  h+=gl('UGC · criadora vestindo a peça · '+vidCost(curVidDur,true)+'cr');h+=`<div style="margin:0 4px 7px">`+[['auto','Automático'],['woman','Mulher'],['man','Homem']].map(o=>`<span class="perc" data-p="${o[0]}" style="${durCss(ugcPersona===o[0])};margin:0 5px 5px 0;display:inline-block" onclick="setUgcPersona('${o[0]}',this)">${o[1]}</span>`).join('')+`</div>`;PERSON_FMTS.forEach((f,i)=>h+=`<div class="opt vid" onclick="genVideo('${id}',${i},'ugc')"><span class="pic">${IC.video}</span>${f.format}</div>`);}
+  else{h+=gl('Vídeo do produto · '+vidCost(curVidDur,false)+'cr');PRODUCT_FMTS.forEach((f,i)=>h+=`<div class="opt vid" onclick="genVideo('${id}',${i},'prod')"><span class="pic">${IC.video}</span>${f.format}</div>`);
+  h+=gl('Vídeo UGC · pessoa falando · '+vidCost(curVidDur,true)+'cr');h+=`<div style="margin:0 4px 7px">`+[['auto','Automático'],['woman','Mulher'],['man','Homem'],['child','Criança']].map(o=>`<span class="perc" data-p="${o[0]}" style="${durCss(ugcPersona===o[0])};margin:0 5px 5px 0;display:inline-block" onclick="setUgcPersona('${o[0]}',this)">${o[1]}</span>`).join('')+`</div>`;PERSON_FMTS.forEach((f,i)=>h+=`<div class="opt vid" onclick="genVideo('${id}',${i},'ugc')"><span class="pic">${IC.video}</span>${f.format}</div>`);}
+  showPop(id,h);}
+function menuEdit(id){showPop(id,`<span class="back" onclick="openNode('${id}')">← voltar</span><h4>Editar imagem</h4><div class="edit"><input id="editTxt" placeholder="ex: fundo mais claro, sem reflexo"><button onclick="doEdit('${id}')">→</button></div>`);}
+function menuVar(id){const im=S.images.find(x=>x.id===id);if(im&&!curImgTier)curImgTier=im.tier||'premium';
+  showPop(id,`<span class="back" onclick="openNode('${id}')">← voltar</span><h4>Nova variação · qualidade</h4>
+  <div style="display:flex;gap:7px;margin:0 4px 11px"><span class="tierc" data-t="premium" style="${durCss(curImgTier==='premium')}" onclick="curImgTier='premium';menuVar('${id}')">✦ Premium ${CRED.imgPremium}cr</span><span class="tierc" data-t="basico" style="${durCss(curImgTier==='basico')}" onclick="curImgTier='basico';menuVar('${id}')">Básico ${CRED.imgBasico}cr</span></div>
+  <div class="opt vid" onclick="genVar('${id}');pop.style.display='none'"><span class="pic">${IC.refresh}</span>Gerar variação diferente</div>`);}
+function doEdit(id){const t=document.getElementById('editTxt').value.trim();if(!t)return;const src=S.images.find(x=>x.id===id);pop.style.display='none';const sp=childSpot(id,230,Math.round(230*aspRatio(src.aspect))+44+84);
+  const nv={id:'i'+(ic++),parent:id,x:sp.x,y:sp.y,title:'Editada',etapa:src.etapa,aspect:src.aspect,tier:src.tier,onmodel:src.onmodel,
+    prompt:`Keep the ${curName||'product'} identity, design, text and real proportions exact. ${t}. Photorealistic marketplace product photo, product is the hero.`,fmts:src.fmts,refs:[src.url],origRefs:(src.origRefs&&src.origRefs.length)?src.origRefs:(src.refs||[src.url]),url:null,fail:null,sel:false};
+  S.images.push(nv);S.links.push({from:id,to:nv.id});renderWorld();genImg(nv);}
+document.addEventListener('mousedown',e=>{if(!e.target.closest('.pop')&&!e.target.closest('.node'))pop.style.display='none';});
+function lightbox(id,e){e.stopPropagation();const o=findNode(id);if(!o||!o.url)return;lb.innerHTML=o.format?`<video src="${o.url}" controls autoplay loop></video>`:`<img src="${o.url}">`;lb.classList.add('on');}
+async function anthropicMsg(body,tries){tries=tries||4;let last='';
+  for(let i=0;i<tries;i++){
+    try{const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':KEYS.anthropic,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+      if(r.status===529||r.status===429||r.status===503){last='servidor ocupado ('+r.status+')';await new Promise(s=>setTimeout(s,1500*(i+1)));continue;}
+      const d=await r.json();
+      if(d&&d.error){const msg=(d.error.message||d.error)+'';if(/overload|rate|busy|529|too many/i.test(msg)){last=msg;await new Promise(s=>setTimeout(s,1500*(i+1)));continue;}throw new Error(msg);}
+      return d;}
+    catch(e){last=(e&&e.message)||(e+'');if(i<tries-1){await new Promise(s=>setTimeout(s,1500*(i+1)));continue;}}
+  }
+  throw new Error('Claude está sobrecarregado agora — tente de novo em alguns segundos ('+last+')');}
+let _titClips=[];
+function normTitle(t){if(!t)return t;return String(t).replace(/[|#@!*&%$^~,.;:]/g,'').replace(/\s*-\s*/g,' - ').replace(/\s+/g,' ').trim().replace(/[A-Za-zÀ-ÿ0-9]+/g,w=>['e','de','da','do','das','dos','a','o','as','os','em','no','na','nos','nas','por','para','com','um','uma'].includes(w.toLowerCase())?w.toLowerCase():w.charAt(0).toUpperCase()+w.slice(1).toLowerCase());}
+const TIT_SOLO_ID='__tit_solo__';let titSolo={id:TIT_SOLO_ID,name:'',urls:[],seo:null,seoDiff:[]},titSoloImg='';
+function pById(id){return id===TIT_SOLO_ID?titSolo:S.products.find(x=>x.id===id);}
+let qkB64='',qkBusy=false;
+const QK_DEFS={foto:{t:'1 Foto Pro',d:'Foto premium de estúdio do seu produto',c:CRED.imgPremium,ic:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 15-5-5L5 21"/>'},
+ look:{t:'1 Look de Moda',d:'Sua peça vestida em modelo profissional',c:CRED.modaLook,ic:'<path d="M12 3a2 2 0 0 1 2 2c0 1.2-1 1.8-2 2.3l7 3.7v9H5v-9l7-3.7"/>'},
+ vid:{t:'1 Vídeo de Produto · 5s',d:'Cena cinematográfica do produto',c:CRED.vidProd5,ic:'<rect x="2" y="5" width="14" height="14" rx="2"/><path d="m16 11 6-4v10l-6-4z"/>'},
+ ugc:{t:'1 Vídeo UGC · 5s',d:'Criador(a) falando do seu produto',c:CRED.ugc5,ic:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'}};
+function renderRapida(){const st=document.getElementById('station');if(!st)return;st.classList.add('on');qkB64='';
+  const card='border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--paper);cursor:pointer;display:flex;flex-direction:column;gap:7px;align-items:flex-start';
+  st.innerHTML=`<div class="insp">
+    <div style="font-family:'Bebas Neue';font-size:26px;letter-spacing:.04em">GERAÇÃO RÁPIDA</div>
+    <div style="font-size:12.5px;color:var(--mut);margin:-4px 0 14px">Escolha o que você quer gerar — um resultado único, sem montar campanha.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      ${Object.keys(QK_DEFS).map(k=>{const s=QK_DEFS[k];return `<div style="${card}" onclick="qkForm('${k}')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${s.ic}</svg><b style="font-size:14.5px">${s.t}</b><span style="font-size:11.5px;color:var(--mut)">${s.d}</span><span style="font-size:11px;font-weight:700;color:var(--orange)">${s.c} créditos</span></div>`;}).join('')}
+    </div>
+  </div>`;}
+function qkForm(kind){const st=document.getElementById('station');if(!st)return;qkB64='';const s=QK_DEFS[kind];
+  const ist='width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;font-family:inherit;font-size:13px;background:var(--paper);color:var(--ink);box-sizing:border-box';
+  const lbl='font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:700;margin-bottom:5px;display:block';
+  const persona=`<div style="flex:1"><span style="${lbl}">Pessoa</span><select id="qkPersona" style="${ist}"><option value="auto">Automático</option><option value="mulher">Mulher</option><option value="homem">Homem</option></select></div>`;
+  const niche=`<div style="flex:1"><span style="${lbl}">Nicho</span><select id="qkNiche" style="${ist}"><option value="roupa">Roupa</option><option value="calcados">Calçados</option><option value="lingerie">Lingerie</option><option value="beachwear">Moda praia</option></select></div>`;
+  const extra=kind==='look'?('<div style="display:flex;gap:10px">'+persona+niche+'</div>'):kind==='ugc'?('<div style="display:flex;gap:10px">'+persona+'</div>'):'';
+  st.innerHTML=`<div class="insp">
+    <div style="font-size:12px;color:var(--mut);cursor:pointer;margin-bottom:8px" onclick="renderRapida()">‹ Voltar</div>
+    <div style="font-family:'Bebas Neue';font-size:24px;letter-spacing:.04em">${s.t.toUpperCase()}</div>
+    <div style="font-size:12.5px;color:var(--mut);margin:-2px 0 12px">${s.d} · <b style="color:var(--orange)">${s.c} créditos</b></div>
+    <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">
+      <div onclick="document.getElementById('qkFile').click()" id="qkTile" style="width:140px;height:140px;border:1.5px dashed var(--line);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--paper);flex:0 0 auto">
+        <span style="font-size:11px;color:var(--mut);text-align:center;padding:8px">Clique pra subir<br>a foto do produto</span></div>
+      <input type="file" id="qkFile" accept="image/*" style="display:none" onchange="qkUp(event)">
+      <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:10px">
+        <div><span style="${lbl}">Nome do produto</span><input id="qkName" style="${ist}" placeholder="ex.: Relógio feminino dourado"></div>
+        ${extra}
+        <button onclick="qkGo('${kind}')" style="border:none;border-radius:10px;padding:12px;background:var(--orange);color:#fff;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer">Gerar agora</button>
+      </div>
+    </div>
+    <div id="qkMsg" style="margin-top:14px;font-size:12.5px;color:var(--mut)"></div>
+    <div id="qkOut" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:14px"></div>
+  </div>`;}
+function qkUp(ev){const f=ev.target.files&&ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{qkB64=String(r.result);const t=document.getElementById('qkTile');if(t)t.innerHTML='<img src="'+qkB64+'" style="width:100%;height:100%;object-fit:cover">';};r.readAsDataURL(f);}
+function qkMsg(t,c){const m=document.getElementById('qkMsg');if(m){m.textContent=t||'';m.style.color=c||'var(--mut)';}}
+function qkShow(url,isVid,name){const o=document.getElementById('qkOut');if(!o)return;const w=document.createElement('div');w.style.cssText='width:200px;display:flex;flex-direction:column;gap:7px';
+  w.innerHTML=(isVid?'<video controls playsinline src="'+url+'" style="width:100%;border-radius:10px;border:1px solid var(--line);background:#000"></video>':'<img src="'+url+'" style="width:100%;border-radius:10px;border:1px solid var(--line)">')+
+  '<button style="border:none;border-radius:9px;padding:9px;background:var(--purple,#7b2fff);color:#fff;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer">Baixar</button>';
+  w.querySelector('button').onclick=()=>dlUrl(url,name);o.prepend(w);}
+async function qkGo(kind){if(qkBusy)return;if(!qkB64)return alert('Sobe a foto do produto primeiro.');
+  const nm=(document.getElementById('qkName')&&document.getElementById('qkName').value.trim())||'the product';
+  const pp=(document.getElementById('qkPersona')&&document.getElementById('qkPersona').value)||'auto';
+  const nc=(document.getElementById('qkNiche')&&document.getElementById('qkNiche').value)||'roupa';
+  const persona=pp==='mulher'?'woman':pp==='homem'?'man':'auto';
+  try{
+    if(kind==='foto'){if(!needCred(CRED.imgPremium,'foto única'))return;qkBusy=true;qkMsg('Gerando sua Foto Pro… (até 2 min)','var(--orange)');
+      const r=await imgEngine({prompt:'Professional premium e-commerce hero photo of '+nm+' shown in the reference image. Keep the product 100% identical: same shape, colors, label, materials and details. Elegant studio lighting, clean seamless light background, soft realistic shadow, advertising quality, high resolution. No people, no text.',image_urls:[qkB64],num_images:1,aspect_ratio:'1:1',output_format:'jpeg',resolution:'2K'});
+      const u=r&&r.images&&r.images[0]&&r.images[0].url;if(!u)throw new Error('sem imagem');qkShow(u,false,'foto-pro.jpg');qkMsg('Foto Pro pronta.');}
+    else if(kind==='look'){if(!KEYS.fashn)return alert('Configure a chave do Motor de Moda em Chaves & Config.');if(!needCred(CRED.modaLook,'look único'))return;qkBusy=true;qkMsg('Vestindo seu produto na modelo… (até 2 min)','var(--orange)');
+      const g=pp==='homem'?'masculino':pp==='mulher'?'feminino':'';
+      const u=await fashnProductToModel(qkB64,fashnSlotPromptFrom({modaName:nm,modaColor:'',modaGender:g,modaNiche:nc},0),'3:4',Math.floor(Math.random()*4000000000));
+      if(!u)throw new Error('sem look');qkShow(u,false,'look-moda.jpg');qkMsg('Look pronto.');}
+    else if(kind==='vid'){if(!needCred(CRED.vidProd5,'vídeo único'))return;qkBusy=true;qkMsg('Gerando seu vídeo… (2 a 5 min, pode deixar aberto)','var(--orange)');
+      const prompt=FIDELITY_PROD+'The hero product is '+nm+'. Keep the framing and focus on '+nm+' the whole time. '+PRODUCT_FMTS[0].prompt;let out;
+      out=await vidGen({prompt,image:qkB64,duration:'5',ratio:'9:16',audio:false,model:LZ_SEEDANCE});
+      const u=out&&out.video&&out.video.url;if(!u)throw new Error('sem vídeo');qkShow(u,true,'video-produto.mp4');qkMsg('Vídeo pronto.');}
+    else if(kind==='ugc'){if(!needCred(CRED.ugc5,'UGC único'))return;qkBusy=true;qkMsg('Gerando seu UGC… (2 a 5 min, pode deixar aberto)','var(--orange)');
+      const d=await describeForUGC(qkB64,persona,'5');const per=(d&&d.persona)||(persona!=='auto'?persona:'woman');const fala=(d&&d.fala)?d.fala:'';
+      const speak=fala?(' The creator speaks this line in Brazilian Portuguese at a natural, unhurried conversational pace, starting to talk right away and finishing comfortably before the clip ends, with lip movement accurately synced to each word: "'+fala+'". The mouth moves naturally and matches the words — no silent staring, no rushing, no repeating.'):' The creator looks at the camera and says one natural sentence in Brazilian Portuguese about the product, unhurried, lip movement synced.';
+      const t2v='A real, candid Brazilian '+per+' content creator films a casual phone-style UGC video, holding and naturally using the product shown in the reference image (keep the product faithful: same shape, color, label and details).'+((d&&d.look)?(' Styling and setting: '+d.look+'.'):'')+' '+FIDELITY+'The hero product is '+nm+'. '+PERSON_FMTS[0].prompt+speak+PERSON_REALISM;let out;
+      out=await vidGen({prompt:t2v,images:[qkB64],role:'reference_image',duration:'5',ratio:'9:16',audio:true,model:LZ_SEEDANCE});
+      const u=out&&out.video&&out.video.url;if(!u)throw new Error('sem vídeo');qkShow(u,true,'video-ugc.mp4');qkMsg('UGC pronto.');}
+  }catch(err){console.warn('geração rápida falhou:',(err&&err.message)||err);qkMsg('Não consegui gerar agora — tente novamente.','#c2410c');}
+  finally{qkBusy=false;}}
+function renderTitleSolo(){const st=document.getElementById('station');if(!st)return;st.classList.add('on');titSoloImg='';
+  const ist='width:100%;border:1px solid var(--line);border-radius:9px;padding:11px;font-family:inherit;font-size:13px;background:var(--paper);color:var(--ink);box-sizing:border-box';
+  const lbl='font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:700;margin-bottom:5px';
+  st.innerHTML=`<div class="insp">
+    <div class="insp-head"><h2>Gerador de Título &amp; SEO</h2><p>Gere título, descrição e 2 variações otimizados pra Shopee, com pesquisa de palavras-chave de alto volume. A foto é opcional (ajuda a IA a entender o produto). Consome ${CRED.titulo} créditos.</p></div>
+    <div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap">
+      <div style="flex:0 0 140px;width:140px"><label class="insp-tile"><input type="file" accept="image/*" onchange="titSoloUpload(this)"><div class="insp-ph" id="titSoloPh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 15-5-5L5 21"/></svg><span>foto do produto</span><small>opcional</small></div></label></div>
+      <div style="flex:1;min-width:240px">
+        <div style="${lbl}">Nome do produto</div>
+        <input id="tsName" placeholder="ex.: castiçal decorativo de cerâmica" style="${ist}">
+        <div style="${lbl};margin-top:14px">Diferenciais (2 a 4)</div>
+        <div id="tsDiffs" style="display:flex;flex-direction:column;gap:8px">${['','',''].map(()=>`<input class="tsDiff" placeholder="ex.: cerâmica · design canelado · para vela de LED" style="${ist}">`).join('')}</div>
+        <div><span class="clr" onclick="addDiffSolo()">+ adicionar diferencial</span></div>
+        <div style="margin-top:16px"><button class="tgen" style="width:auto;padding:12px 24px" onclick="doGenTitleSolo()">Gerar título &amp; SEO · ${CRED.titulo} cr</button></div>
+      </div>
+    </div></div>`;}
+function titSoloUpload(input){const f=input.files&&input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{titSoloImg=r.result;const ph=document.getElementById('titSoloPh');if(ph)ph.innerHTML='<img src="'+r.result+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px">';};r.readAsDataURL(f);}
+function addDiffSolo(){const c=document.getElementById('tsDiffs');if(!c)return;const i=document.createElement('input');i.className='tsDiff';i.placeholder='ex.: ...';i.style.cssText='width:100%;border:1px solid var(--line);border-radius:9px;padding:11px;font-family:inherit;font-size:13px;background:var(--paper);color:var(--ink);box-sizing:border-box';c.appendChild(i);i.focus();}
+function doGenTitleSolo(){if(!KEYS.anthropic){showGate();return;}const nm=document.getElementById('tsName');const name=(nm&&nm.value.trim())||'';const diffs=[...document.querySelectorAll('.tsDiff')].map(i=>i.value.trim()).filter(Boolean);if(!name){nm&&nm.focus();return;}
+  titSolo={id:TIT_SOLO_ID,name,urls:titSoloImg?[titSoloImg]:[],seo:null,seoDiff:diffs};
+  document.getElementById('titwrap').classList.add('on');genTitle(TIT_SOLO_ID,name,diffs);}
+function openTitle(pid,e){if(e)e.stopPropagation();if(!KEYS.anthropic){showGate();return;}const p=pById(pid);if(!p)return;document.getElementById('titwrap').classList.add('on');if(p.seo)renderTitle(p,p.seo);else renderTitleForm(p);}
+function renderTitleForm(p){const tc=document.getElementById('titcard');const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const diff=(p.seoDiff&&p.seoDiff.length?p.seoDiff:['','','']);
+  let h=`<button class="titclose" onclick="closeTit()">✕</button><h3>Título & SEO · ${esc(p.name)}</h3><div class="sub">Diga os diferenciais do produto. A IA pesquisa as palavras-chave de maior volume na web e escreve o título fluido.</div>`;
+  h+=`<div class="k" style="margin-bottom:5px">Nome do produto</div><input id="tName" value="${esc(p.name)}">`;
+  h+=`<div class="k" style="margin:12px 0 5px">Diferenciais (2 a 4)</div><div id="tDiffs">${diff.map(d=>`<input class="tDiff" placeholder="ex.: couro legítimo · alça ajustável · impermeável" value="${esc(d)}">`).join('')}</div>`;
+  h+=`<span class="clr" style="margin:2px 0 16px;display:inline-block" onclick="addDiff()">+ adicionar diferencial</span>`;
+  h+=`<button class="tgen" onclick="doGenTitle('${p.id}')">Gerar título &amp; SEO · ${CRED.titulo} cr</button>`;
+  tc.innerHTML=h;}
+function addDiff(){const c=document.getElementById('tDiffs');if(!c)return;const i=document.createElement('input');i.className='tDiff';i.placeholder='ex.: ...';c.appendChild(i);i.focus();}
+function doGenTitle(pid){const nm=document.getElementById('tName');const name=(nm&&nm.value.trim())||'';const diffs=[...document.querySelectorAll('.tDiff')].map(i=>i.value.trim()).filter(Boolean);if(!name){nm&&nm.focus();return;}genTitle(pid,name,diffs);}
+async function genTitle(pid,name,diffs){if(!KEYS.anthropic){showGate();return;}
+  const p=pById(pid);if(!p)return;name=name||p.name;diffs=(diffs||[]).filter(Boolean);
+  if(!needCred(CRED.titulo,'Título & Descrição'))return;
+  const tc=document.getElementById('titcard');
+  tc.innerHTML=`<button class="titclose" onclick="closeTit()">✕</button><div style="display:flex;gap:12px;align-items:center;color:var(--mut);padding:10px 2px"><div class="spin"></div> pesquisando palavras-chave de alto volume e escrevendo…</div>`;
+  try{const content=[];const u=(p.urls&&p.urls[0])||'';const m=/^data:(.+?);base64,(.+)$/.exec(u);
+    if(m)content.push({type:'image',source:{type:'base64',media_type:m[1],data:m[2]}});
+    content.push({type:'text',text:`Você é especialista em SEO para Shopee Brasil e copywriting de conversão, seller-para-seller.
+Produto: "${name}"
+Diferenciais informados pelo vendedor:
+${diffs.length?diffs.map((d,i)=>(i+1)+'. '+d).join('\n'):'(nenhum — infira pela foto)'}
+
+PASSO 1 — web_search: descubra os TERMOS DE MAIOR VOLUME DE BUSCA desse produto no Brasil (digite o produto e veja autocomplete/sugestões, buscas relacionadas e como os anúncios campeões da Shopee/ML nomeiam). Título e keywords baseados nesses termos REAIS; não invente volume.
+
+PASSO 2 — escreva um TÍTULO FLUIDO, que soa NATURAL (como um vendedor bom escreveria), JAMAIS uma lista de palavras soltas:
+- Estrutura: PRODUTO (palavra-chave de maior volume primeiro) + CARACTERÍSTICA principal + BENEFÍCIO + MARCA (só se houver marca real).
+- Use conectivos (de, com, para) pra LIGAR as palavras e dar fluidez.
+- Escolha só os 1 ou 2 atributos mais buscados; NÃO empilhe tudo.
+- PROIBIDO vírgula, ponto, | # @ ! * &. Separe só com espaço (ou um hífen quando fizer sentido). Máx 120 caracteres.
+EXEMPLO BOM (fluido): Bolsa Feminina de Couro Elegante para o Dia a Dia
+EXEMPLO RUIM (palavras jogadas): Bolsa Feminina Couro Elegante Transversal Casual Moda Alça
+
+PASSO 3 — 2 variações FORTES e BEM diferentes entre si (não troque só uma palavra; cada uma também fluida e sem vírgula/ponto):
+- Variação 1: ataca OUTRO termo-cabeça de alto volume (sinônimo/categoria que muita gente busca, ex.: Tiracolo vs Transversal).
+- Variação 2: ataca por OCASIÃO/uso ou público (ex.: para Trabalho, para Presente, Feminina Casual).
+
+Retorne SOMENTE JSON válido (nada fora do JSON):
+{"titulo":"","variacoes":["",""],"descricao":"150 a 250 palavras em PT-BR, fluida, com gatilhos mentais (prova social, autoridade, pertencimento), benefícios e os diferenciais, encaixando palavras-chave de alto volume naturalmente, sem emoji, voltada à conversão","bullets":["b1","b2","b3","b4","b5"],"keywords":["8 a 12 termos REAIS de alto volume, minúsculos, do mais buscado ao mais específico"],"justificativa":"1 frase"}`});
+    const data=await anthropicMsg({model:ANTHROPIC_MODEL,max_tokens:2400,tools:[{type:"web_search_20250305",name:"web_search"}],messages:[{role:"user",content}]});
+    let txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');txt=txt.replace(/<\/?cite[^>]*>/gi,'');const mt=txt.match(/\{[\s\S]*\}/);if(mt)txt=mt[0];
+    const t=JSON.parse(txt.replace(/```json|```/g,'').trim());
+    const SC=s=>String(s||'').replace(/<\/?cite[^>]*>/gi,'');t.descricao=SC(t.descricao);t.bullets=(t.bullets||[]).map(SC);t.keywords=(t.keywords||[]).map(SC);t.justificativa=SC(t.justificativa);
+    t.titulo=normTitle(t.titulo);t.variacoes=(t.variacoes||[]).map(normTitle);
+    p.seo=t;p.seoDiff=diffs;p.name=name;save();renderTitle(p,t);
+  }catch(err){tc.innerHTML=`<button class="titclose" onclick="closeTit()">✕</button><div class="err">Não consegui gerar: ${(err&&err.message)||err}</div><span class="clr" style="display:inline-block;margin-top:10px" onclick="renderTitleForm(pById('${pid}'))">voltar e tentar de novo</span>`;}}
+function renderTitle(p,t){_titClips=[];const tc=document.getElementById('titcard');
+  const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const clip=(text)=>{const i=_titClips.length;_titClips.push(String(text||''));return `<button class="titcopy" onclick="copyTit(${i},this)">copiar</button>`;};
+  let h=`<button class="titclose" onclick="closeTit()">✕</button><h3>Título & SEO · ${esc(p.name)}</h3><div class="sub">Palavras-chave pesquisadas na web · salvo neste produto. <span class="clr" style="margin:0" onclick="renderTitleForm(pById('${p.id}'))">editar diferenciais / gerar de novo</span></div>`;
+  h+=`<div class="titrow">${clip(t.titulo)}<div class="k">Título · ${(t.titulo||'').length}/120 · produto + característica + benefício + marca</div><div class="v">${esc(t.titulo)}</div></div>`;
+  (t.variacoes||[]).forEach((v,i)=>{h+=`<div class="titrow">${clip(v)}<div class="k">Variação ${i+1}</div><div class="v">${esc(v)}</div></div>`;});
+  const b=(t.bullets||[]);const descCopy=(t.descricao||'')+(b.length?('\n\n'+b.map(x=>'• '+x).join('\n')):'');
+  let descV=esc(t.descricao||'');if(b.length)descV+=`<div style="margin-top:9px">${b.map(x=>'• '+esc(x)).join('<br>')}</div>`;
+  h+=`<div class="titrow">${clip(descCopy)}<div class="k">Descrição · gatilhos + benefícios</div><div class="v">${descV}</div></div>`;
+  const kw=(t.keywords||[]);if(kw.length)h+=`<div class="titrow">${clip(kw.join(', '))}<div class="k">Palavras-chave de alto volume · use na descrição</div><div class="v">${esc(kw.join(', '))}</div></div>`;
+  tc.innerHTML=h;}
+function copyTit(i,btn){const txt=_titClips[i]||'';const ok=()=>{const o=btn.textContent;btn.textContent='copiado ✓';setTimeout(()=>btn.textContent=o,1400);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(ok).catch(()=>{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(_){}ta.remove();ok();});}
+  else{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(_){}ta.remove();ok();}}
+function closeTit(){document.getElementById('titwrap').classList.remove('on');}
+
+async function falRun(model,input){if(!KEYS.fal){showGate();throw new Error('Conecte a chave fal.ai');}
+  let j=null,last='';
+  for(let a=0;a<4;a++){let sub;try{sub=await fetch(px('https://queue.fal.run/'+model),{method:'POST',headers:{Authorization:'Key '+KEYS.fal,'Content-Type':'application/json'},body:JSON.stringify(input)});}catch(net){last='fal sem resposta: '+((net&&net.message)||net);await new Promise(r=>setTimeout(r,2000*(a+1)));continue;}
+    const txt=await sub.text();try{j=JSON.parse(txt);}catch(_){j=null;}
+    if(sub.ok&&j)break;
+    last='fal '+sub.status+': '+(((j&&j.detail&&(typeof j.detail==='string'?j.detail:JSON.stringify(j.detail)))||(j&&j.error)||txt.slice(0,160))||'sem corpo');j=null;
+    if(sub.status===429||sub.status===503||sub.status===502||sub.status===500){await new Promise(r=>setTimeout(r,2500*(a+1)));continue;}
+    throw new Error(last);}
+  if(!j)throw new Error(last||'fal: submit falhou');
+  if(j.images||j.video)return j;
+  if(!j.status_url||!j.response_url)throw new Error(last||(j.detail?(typeof j.detail==='string'?j.detail:JSON.stringify(j.detail)):(j.error||'fal: submit sem status_url')));
+  for(let i=0;i<170;i++){await new Promise(r=>setTimeout(r,2000));let st;try{st=await(await fetch(px(j.status_url),{headers:{Authorization:'Key '+KEYS.fal}})).json();}catch(_){continue;}
+    if(st.status==='COMPLETED')break;if(st.status==='FAILED'||st.status==='ERROR')throw new Error('fal: geração falhou ('+(st.error||'')+')');}
+  const out=await(await fetch(px(j.response_url),{headers:{Authorization:'Key '+KEYS.fal}})).json();
+  if(out&&(out.images||out.video))return out;
+  const vUrl=(out&&out.video&&out.video.url)||(out&&out.data&&out.data.video&&out.data.video.url);
+  if(vUrl)return{video:{url:vUrl}};
+  throw new Error('fal: resposta sem imagem'+(out&&out.detail?(' — '+(typeof out.detail==='string'?out.detail:JSON.stringify(out.detail))):' (tente de novo)'));}
+/* UMA tentativa por geração de imagem: POST aceito = cobrado. Erro → cascata assume. */
+async function lzPost(path,body,key){const K=key||KEYS.laozhang;let last='';
+  for(let a=0;a<1;a++){let resp;try{resp=await fetch(px(LZ_BASE+path),{method:"POST",headers:{Authorization:"Bearer "+K,"Content-Type":"application/json"},body:JSON.stringify(body)});}
+    catch(net){last='laozhang sem resposta (rede/CORS): '+((net&&net.message)||net);continue;}
+    const txt=await resp.text();let j=null;try{j=JSON.parse(txt);}catch(_){}
+    if(resp.ok&&j)return j;
+    last='laozhang '+resp.status+': '+(((j&&j.error&&(j.error.message||j.error))||(j&&j.message))||txt.slice(0,160)||'sem corpo');
+    throw new Error(last);}
+  throw new Error(last||'laozhang indisponível (503)');}
+async function lzImage({prompt,image,aspect}){const key=KEYS.lzImg||KEYS.laozhang;const body={model:"gpt-image-2",prompt,size:aspSize(aspect),n:1};if(image)body.image=image;
+  const j=await lzPost("/images/generations",body,key);const d=j.data&&j.data[0];const url=d&&(d.url||(d.b64_json?("data:image/png;base64,"+d.b64_json):null));
+  if(!url)throw new Error((j.error&&(j.error.message||j.error))||j.message||'laozhang imagem: resposta sem URL (confira endpoint/modelo)');return {images:[{url}]};}
+async function lzNanoPro({prompt,image_urls,aspect}){const key=KEYS.lzNano||KEYS.laozhang;const imgs=(image_urls||[]).filter(Boolean);
+  const body={model:LZ_IMG_PRO,prompt,size:aspSize(aspect),n:1};
+  if(imgs.length===1)body.image=imgs[0];else if(imgs.length>1)body.image=imgs;
+  const j=await lzPost("/images/generations",body,key);const d=j.data&&j.data[0];const url=d&&(d.url||(d.b64_json?("data:image/png;base64,"+d.b64_json):null));
+  if(!url)throw new Error((j.error&&(j.error.message||j.error))||j.message||'laozhang Nano Pro: resposta sem URL');return {images:[{url}]};}
+const SEEDANCE_BASE="https://api.laozhang.ai/seedance/api/v3";
+async function lzVideo({prompt,image,images,duration,ratio,audio,model,role}){
+  const isSora=(model===LZ_SORA);const key=(isSora&&KEYS.lzSora)?KEYS.lzSora:KEYS.laozhang;
+  let createUrl,pollBase,reqInit;
+  if(isSora){createUrl=LZ_BASE+"/videos";pollBase=LZ_BASE+"/videos/";
+    const fd=new FormData();fd.append('model','sora-2');fd.append('prompt',prompt);fd.append('seconds',((parseInt(duration)||5)<=6?'4':'8'));fd.append('size',ratio==='16:9'?'1280x720':ratio==='1:1'?'720x720':'720x1280');
+    if(image){try{const ib=await(await fetch(px(image))).blob();fd.append('input_reference',ib,'ref.png');}catch(_){}}
+    reqInit={method:"POST",headers:{Authorization:"Bearer "+key},body:fd};}
+  else{createUrl=SEEDANCE_BASE+"/contents/generations/tasks";pollBase=SEEDANCE_BASE+"/contents/generations/tasks/";
+    const content=[{type:"text",text:prompt}];const _imgs=(images&&images.length)?images:(image?[image]:[]),uploadedImgs=[];
+    for(const u of _imgs){uploadedImgs.push(/^data:image\//.test(u)?await kieUpload(u):u);}
+    uploadedImgs.forEach(u=>content.push({type:"image_url",image_url:{url:u},role:role||"first_frame"}));
+    const body={model:model||LZ_SEEDANCE,content,ratio:ratio||"9:16",duration:parseInt(duration)||5,resolution:"720p",watermark:false,generate_audio:!!audio};
+    reqInit={method:"POST",headers:{Authorization:"Bearer "+key,"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(body)};}
+  /* UMA tentativa de createTask por clique: cada POST aceito é cobrado no provedor.
+     Retry aqui = risco de cobrança dupla. Falhou → cascata (Kie/fal) assume. */
+  let j=null,last='';
+  for(let a=0;a<1;a++){let resp;try{resp=await fetch(px(createUrl),reqInit);}catch(net){last='laozhang sem resposta (rede/CORS): '+((net&&net.message)||net);await new Promise(r=>setTimeout(r,2000));continue;}
+    const txt=await resp.text();try{j=JSON.parse(txt);}catch(_){j=null;}
+    if(resp.ok&&j)break;
+    last='laozhang '+resp.status+': '+(((j&&j.error&&(j.error.message||j.error))||(j&&j.message))||txt.slice(0,180)||'sem corpo');j=null;
+    /* 5xx do gateway pode chegar DEPOIS da tarefa ter sido criada lá dentro —
+       reenviar duplicaria a cobrança. Só retenta 429 (rate limit, certeza de não-criação). */
+    if(resp.status===429){await new Promise(r=>setTimeout(r,2500));continue;}
+    throw new Error(last);}
+  if(!j)throw new Error(last||'laozhang: criação falhou');
+  const id=j.id||j.task_id||(j.data&&j.data.id);if(!id)throw new Error('laozhang: submit sem id — '+(((j.error&&(j.error.message||j.error))||j.message)||'cobrança/acesso ao grupo?'));
+  /* Cada poll tem timeout próprio de 15s: o endpoint de status da laozhang trava
+     intermitentemente e, sem abort, um único poll pendurado segura a UI por minutos. */
+  let nf=0;for(let i=0;i<200;i++){await new Promise(r=>setTimeout(r,3000));let resp,st;try{const ac=new AbortController();const tm=setTimeout(()=>ac.abort(),15000);resp=await fetch(px(pollBase+id),{headers:{Authorization:"Bearer "+key,"Accept":"application/json"},signal:ac.signal});clearTimeout(tm);st=await resp.json();}catch(_){continue;}
+    if(resp&&resp.status===404){if(++nf>6)throw new Error('laozhang: tarefa '+id+' não encontrada (endpoint/grupo?)');continue;}
+    const s=((st.status||'')+'').toLowerCase();
+    if(s==='succeeded'||s==='completed'||s==='success'){const url=(st.content&&st.content.video_url)||st.video_url||st.url||(st.data&&(st.data.video_url||st.data.url));if(url)return{video:{url}};}
+    if(s==='failed'||s==='error'||s==='expired')throw new Error('laozhang: geração '+s+' ('+((st.error&&(st.error.message||st.error))||'')+')');}
+  throw new Error('laozhang: timeout');}
+async function genImg(im){const cost=(im.moda)?CRED.modaLook:((im.tier==='basico')?CRED.imgBasico:CRED.imgPremium);if(!needCred(cost,'imagem '+(im.tier||'premium'))){im.fail='Sem créditos';replaceNode(im.id,imgHtml(im));return;}im.url=null;im.fail=null;replaceNode(im.id,imgHtml(im));log(tool('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="9" cy="9" r="1.3"/></svg>','g',`${im.moda?'Moda · '+((im.title||'look').toLowerCase()):(im.tier==='basico'?'IA.Clip Básico':'IA.Clip Pro')+' · '+im.title.toLowerCase()}`,'run'),'raw');const r=lastRun();
+  if(im.moda){try{const murl=await fashnProductToModel(im.modaProdB64||(im.refs&&im.refs[0]),im.prompt,im.aspect,im.modaSeed);im.url=murl;replaceNode(im.id,imgHtml(im));if(r){r.className='st done';r.textContent='done';}save();}catch(e){im.fail=(e&&e.message)||e;replaceNode(im.id,imgHtml(im));if(r){r.className='st fail';r.textContent='fail';}}return;}
+  try{const fp=IMG_FIDELITY+im.prompt+(im.onmodel?PERSON_REALISM:'');let out;
+    if((im.tier==='basico')&&KEYS.laozhang){out=await lzImage({prompt:fp,image:im.refs[0],aspect:im.aspect});}
+    else{out=await imgEngine({prompt:fp,image_urls:im.refs,num_images:1,aspect_ratio:im.aspect,output_format:'jpeg',resolution:'2K'});}
+    const _u=out&&out.images&&out.images[0]&&out.images[0].url;if(!_u)throw new Error('o motor de imagem não retornou imagem (tente de novo)');im.url=_u;replaceNode(im.id,imgHtml(im));if(r){r.className='st done';r.textContent='done';}save();}
+  catch(e){im.fail=(e&&e.message)||e;replaceNode(im.id,imgHtml(im));if(r){r.className='st fail';r.textContent='fail';}}}
+function regenImg(id,e){if(e)e.stopPropagation();const im=S.images.find(x=>x.id===id);im.sel=false;if(im.moda)im.modaSeed=Math.floor(Math.random()*4000000000);genImg(im);}
+function approve(id){const im=S.images.find(x=>x.id===id);im.sel=!im.sel;replaceNode(id,imgHtml(im));pop.style.display='none';save();}
+function approveV(id){const v=S.videos.find(x=>x.id===id);v.sel=!v.sel;replaceNode(id,vidHtml(v));pop.style.display='none';save();}
+async function dlUrl(url,name){try{const r=await fetch(url);const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);}catch(_){window.open(url,'_blank');}}
+async function dl(id,e){if(e)e.stopPropagation();const o=findNode(id);if(!o||!o.url)return;await dlUrl(o.url,(o.format?'video-':'imagem-')+id+(o.format?'.mp4':'.jpg'));}
+async function dlSeq(fid,e){if(e)e.stopPropagation();const f=(S.finals||[]).find(x=>x.id===fid);if(!f)return;for(let i=0;i<f.clips.length;i++){await dlUrl(f.clips[i],`cena-${i+1}.mp4`);await new Promise(r=>setTimeout(r,700));}}
+const musicEl=document.getElementById('music');let musicTarget=null;
+function setMusic(fid,e){if(e)e.stopPropagation();musicTarget=fid;musicEl.value='';musicEl.click();}
+musicEl.onchange=()=>{const file=musicEl.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{const f=(S.finals||[]).find(x=>x.id===musicTarget);if(f){f.music=r.result;renderWorld();save();}};r.readAsDataURL(file);};
+let ffmpeg=null;
+async function loadFFmpeg(){if(ffmpeg)return ffmpeg;if(typeof FFmpegWASM==='undefined'||typeof FFmpegUtil==='undefined')throw new Error('libs de montagem não carregaram (sem internet?)');
+  ffmpeg=new FFmpegWASM.FFmpeg();const base='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
+  const classWorkerURL=await FFmpegUtil.toBlobURL('https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js','text/javascript');
+  await ffmpeg.load({coreURL:await FFmpegUtil.toBlobURL(base+'/ffmpeg-core.js','text/javascript'),wasmURL:await FFmpegUtil.toBlobURL(base+'/ffmpeg-core.wasm','application/wasm'),classWorkerURL});return ffmpeg;}
+async function mergeCommercial(fid,e){if(e)e.stopPropagation();const f=(S.finals||[]).find(x=>x.id===fid);if(!f||!f.clips.length)return;
+  setFoot('Montando comercial… (1ª vez baixa o motor ~30MB)','var(--orange)');log(tool('⧉','k','montando comercial','run'),'raw');const r=lastRun();
+  try{const ff=await loadFFmpeg();const N=f.clips.length;const durs=(f.durs&&f.durs.length===N)?f.durs:f.clips.map(()=>5);const T=0.4;
+    const fetchBytes=async(u)=>{try{const r=await fetch(u);if(r.ok)return new Uint8Array(await r.arrayBuffer());}catch(_){}const r2=await fetch(px(u));if(!r2.ok)throw new Error('não consegui baixar uma das cenas');return new Uint8Array(await r2.arrayBuffer());};
+    for(let i=0;i<N;i++){await ff.writeFile('c'+i+'.mp4',await fetchBytes(f.clips[i]));}
+    if(f.music){try{await ff.writeFile('music.mp3',await fetchBytes(f.music));}catch(_){}}
+    const inputs=[];for(let i=0;i<N;i++){inputs.push('-i','c'+i+'.mp4');}
+    const scale=i=>`[${i}:v]scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1,fps=30`;
+    let xf='';for(let i=0;i<N;i++)xf+=scale(i)+`[s${i}];`;
+    let prev='s0',cum=durs[0];for(let j=1;j<N;j++){const off=Math.max(0,(cum-T)).toFixed(2);xf+=`[${prev}][s${j}]xfade=transition=fade:duration=${T}:offset=${off}[x${j}];`;prev='x'+j;cum=cum+durs[j]-T;}
+    const xfilt=xf+`[${prev}]null[outv]`;
+    let cc='';for(let i=0;i<N;i++)cc+=scale(i)+`[v${i}];`;for(let i=0;i<N;i++)cc+=`[v${i}]`;cc+=`concat=n=${N}:v=1:a=0[outv]`;
+    const mk=filt=>f.music?[...inputs,'-i','music.mp3','-filter_complex',filt,'-map','[outv]','-map',N+':a','-shortest','-c:v','libx264','-pix_fmt','yuv420p','-c:a','aac','comercial.mp4']:[...inputs,'-filter_complex',filt,'-map','[outv]','-c:v','libx264','-pix_fmt','yuv420p','comercial.mp4'];
+    let done=false;
+    if(N>=2){try{await ff.exec(mk(xfilt));done=true;}catch(_){done=false;}}
+    if(!done){await ff.exec(mk(N>=2?cc:scale(0)+'[outv]'));}
+    const out=await ff.readFile('comercial.mp4');const blob=new Blob([out.buffer],{type:'video/mp4'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='comercial.mp4';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    if(r){r.className='st done';r.textContent='done';}setFoot('Comercial pronto');}
+  catch(err){if(r){r.className='st fail';r.textContent='fail';}setFoot('Montagem falhou — baixando cenas','#c2410c');
+    alert('Não consegui montar no navegador ('+((err&&err.message)||err)+'). Vou baixar as cenas em ordem como plano B.');dlSeq(fid);}}
+let varSeed=0;
+const VAR_ANGLES=["from a high top-down angle","from a low hero angle","from a 3/4 front angle","from a straight-on eye-level angle","from a side profile angle","from a close diagonal angle"];
+function genVar(id){const src=S.images.find(x=>x.id===id);if(!src||!src.url)return;const sp=childSpot(id,230,Math.round(230*aspRatio(src.aspect))+44+84);
+  if(src.moda){const prodM=prodOf(src);const kk=varSeed++;const slot=(((src.modaSlot||0)+1+kk)%5);const nvm={id:'i'+(ic++),parent:id,x:sp.x,y:sp.y,title:'Variação '+(kk+1),etapa:'moda',aspect:src.aspect,tier:'premium',onmodel:true,moda:true,modaSlot:slot,modaSeed:Math.floor(Math.random()*4000000000),modaProdB64:src.modaProdB64,prompt:(prodM?fashnSlotPromptFrom(prodM,slot):src.prompt),fmts:[],refs:src.refs,origRefs:src.origRefs,url:null,fail:null,sel:false};S.images.push(nvm);S.links.push({from:id,to:nvm.id});renderWorld();genImg(nvm);return;}
+  const base=(src.origRefs&&src.origRefs.length)?src.origRefs:(src.refs||[src.url]);const k=varSeed++;const style=VAR_STYLES[k%VAR_STYLES.length];const angle=VAR_ANGLES[k%VAR_ANGLES.length];
+  const nv={id:'i'+(ic++),parent:id,x:sp.x,y:sp.y,title:'Variação '+(k+1),etapa:src.etapa,aspect:src.aspect,tier:curImgTier,onmodel:src.onmodel,
+    prompt:`Keep the ${curName||'product'} identity EXACT (same design, color, material, logos, proportions and real size). Reshoot it as a COMPLETELY DIFFERENT photo, clearly distinct from every previous shot: ${style}, ${angle}. Different background, lighting and composition. Product sharp, fully in focus and the hero. Do NOT invent text, logos or objects; no deformation.`,fmts:src.fmts,refs:base,origRefs:base,url:null,fail:null,sel:false};
+  S.images.push(nv);S.links.push({from:id,to:nv.id});renderWorld();genImg(nv);}
+/* === CASCATA DE IMAGEM: Kie (corte 110s) -> laozhang -> Google -> fal ===
+   Prioriza custo (Kie), mas zero tolerância a erro/lentidão: cai pro próximo a cada falha/timeout.
+   Pula sozinho qualquer motor sem chave. Vídeo NÃO usa isto (fica no Seedance/laozhang). */
+const KIE_JOBS="https://api.kie.ai/api/v1/jobs", KIE_UPLOAD="https://kieai.redpandaai.co/api/file-base64-upload", GOOGLE_IMG_MODEL="gemini-3-pro-image-preview", KIE_TIMEOUT=110000;
+async function kieUpload(u){if(/^https?:/.test(u))return u;const r=await fetch(px(KIE_UPLOAD),{method:'POST',headers:{Authorization:'Bearer '+KEYS.kie,'Content-Type':'application/json'},body:JSON.stringify({base64Data:u,uploadPath:'images/base64',fileName:'ref'+Date.now()+'.png'})});const j=await r.json();const url=j&&j.data&&j.data.downloadUrl;if(!url)throw new Error('Kie upload: '+((j&&j.msg)||r.status));return url;}
+async function kieImage(inp){if(!KEYS.kie)throw new Error('sem chave Kie');const refs=(inp.image_urls||[]).filter(Boolean);const urls=[];for(const rf of refs){urls.push(await kieUpload(rf));}
+  const body={model:'nano-banana-pro',input:{prompt:inp.prompt,image_input:urls,aspect_ratio:inp.aspect_ratio||'1:1',resolution:inp.resolution||'2K',output_format:'png'}};
+  const ct=await(await fetch(px(KIE_JOBS+'/createTask'),{method:'POST',headers:{Authorization:'Bearer '+KEYS.kie,'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
+  if(!ct||ct.code!==200||!ct.data||!ct.data.taskId)throw new Error('Kie createTask: '+((ct&&ct.msg)||'sem taskId'));
+  const tid=ct.data.taskId,t0=Date.now();
+  while(Date.now()-t0<KIE_TIMEOUT){await new Promise(r=>setTimeout(r,4000));let rj;try{rj=((await(await fetch(px(KIE_JOBS+'/recordInfo?taskId='+tid),{headers:{Authorization:'Bearer '+KEYS.kie}})).json()).data)||{};}catch(_){continue;}
+    if(rj.state==='success'){const u=(JSON.parse(rj.resultJson||'{}').resultUrls||[])[0];if(!u)throw new Error('Kie sem resultUrl');return{images:[{url:u}]};}
+    if(rj.state==='fail')throw new Error('Kie: '+(rj.failMsg||'falhou'));}
+  throw new Error('Kie passou de '+(KIE_TIMEOUT/1000)+'s');}
+async function kieVideo(p){if(!KEYS.kie)throw new Error('sem chave Kie');
+  const inp={prompt:p.prompt,generate_audio:p.audio===true,resolution:'720p',aspect_ratio:p.ratio||'9:16',duration:parseInt(p.dur)||5};
+  if(p.images&&p.images.length){const urls=[];for(const rf of p.images){urls.push(await kieUpload(rf));}inp.reference_image_urls=urls;}
+  else if(p.image){inp.first_frame_url=await kieUpload(p.image);}
+  const ct=await(await fetch(px(KIE_JOBS+'/createTask'),{method:'POST',headers:{Authorization:'Bearer '+KEYS.kie,'Content-Type':'application/json'},body:JSON.stringify({model:'bytedance/seedance-2-fast',input:inp})})).json();
+  if(!ct||ct.code!==200||!ct.data||!ct.data.taskId)throw new Error('Kie video createTask: '+((ct&&ct.msg)||'sem taskId'));
+  const tid=ct.data.taskId,t0=Date.now(),VTO=480000;
+  while(Date.now()-t0<VTO){await new Promise(r=>setTimeout(r,5000));let rj;try{const ac=new AbortController();const tm=setTimeout(()=>ac.abort(),15000);rj=((await(await fetch(px(KIE_JOBS+'/recordInfo?taskId='+tid),{headers:{Authorization:'Bearer '+KEYS.kie},signal:ac.signal})).json()).data)||{};clearTimeout(tm);}catch(_){continue;}
+    if(rj.state==='success'){const u=(JSON.parse(rj.resultJson||'{}').resultUrls||[])[0];if(!u)throw new Error('Kie video sem resultUrl');return{video:{url:u}};}
+    if(rj.state==='fail')throw new Error('Kie video: '+(rj.failMsg||'falhou'));}
+  throw new Error('Kie video: timeout');}
+/* Cadeia de reserva: tenta Kie e, se ela falhar (ex.: sem créditos), cai pro fal.ai (Seedance no fal).
+   Recebe o erro original do motor 1 (laozhang) pra não perder a causa raiz se tudo falhar. */
+async function vidBackup(p,origErr){let last=origErr||null;
+  if(KEYS.kie){try{return await kieVideo(p);}catch(e){last=e;try{console.warn('motor reserva Kie falhou, tentando fal:',(e&&e.message)||e);}catch(_){}}}
+  try{const inp={prompt:p.prompt,image_url:(p.images&&p.images[0])||p.image,resolution:'720p',aspect_ratio:p.ratio||'9:16',duration:String(parseInt(p.dur)||5),generate_audio:p.audio===true};
+    return await vidEngine(inp);}
+  catch(e){try{console.warn('motor reserva fal falhou:',(e&&e.message)||e);}catch(_){}throw last||e;}}
+async function vidImgUrl(p){const u=(p.images&&p.images.length)?p.images[0]:p.image;if(!u)return u;return /^data:image\//.test(u)?await kieUpload(u):u;}
+/* Cascata unificada de vídeo (handoff §3): laozhang Seedance primeiro (mais barato),
+   fal como reserva quando ela falhar, Kie como última opção.
+   1 tentativa por motor — sem retry interno (cada createTask na lao é cobrado). */
+async function vidGen(p){let last=null;
+  const imgUrl=await vidImgUrl(p);
+  const lzP=Object.assign({},p,{image:imgUrl,images:p.images?[imgUrl]:undefined});
+  const falInp={prompt:p.prompt,image_url:imgUrl,resolution:'720p',aspect_ratio:p.ratio||'9:16',duration:String(parseInt(p.duration)||5),generate_audio:p.audio===true};
+  const tryFal=async()=>{return await vidEngine(falInp);};
+  const tryLz=async()=>{return await lzVideo(lzP);};
+  const order=[['laozhang',tryLz],['fal',tryFal]];
+  for(const [name,fn] of order){
+    if(name==='laozhang'&&!KEYS.laozhang)continue;
+    if(name==='fal'&&!(KEYS.fal||KEYS.vidbk))continue;
+    try{return await fn();}catch(e){last=e;try{console.warn('motor de vídeo ('+name+') falhou:',(e&&e.message)||e);}catch(_){}}}
+  if(KEYS.kie){try{return await kieVideo({prompt:p.prompt,image:p.image,images:p.images,audio:p.audio,ratio:p.ratio,dur:p.duration});}catch(e){last=e;}}
+  throw last||new Error('nenhum motor de vídeo disponível');}
+async function googleImage(inp){if(!KEYS.google)throw new Error('sem chave Google');const parts=[{text:inp.prompt}];
+  for(const u of (inp.image_urls||[]).filter(Boolean)){let mime='image/png',b64=u;const m=/^data:([^;]+);base64,(.*)$/.exec(u);
+    if(m){mime=m[1];b64=m[2];}else{const blob=await(await fetch(px(u))).blob();mime=blob.type||'image/png';b64=await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(String(fr.result).split(',')[1]);fr.readAsDataURL(blob);});}
+    parts.push({inline_data:{mime_type:mime,data:b64}});}
+  const ep='https://generativelanguage.googleapis.com/v1beta/models/'+GOOGLE_IMG_MODEL+':generateContent';
+  const j=await(await fetch(px(ep),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts}]})})).json();
+  const ps=(((j||{}).candidates||[])[0]||{}).content&&j.candidates[0].content.parts||[];
+  for(const p of ps){const id=p.inline_data||p.inlineData;if(id&&id.data)return{images:[{url:'data:'+(id.mime_type||id.mimeType||'image/png')+';base64,'+id.data}]};}
+  throw new Error('Google: '+((j&&j.error&&j.error.message)||'sem imagem'));}
+async function imgEngine(inp){
+  if(KEYS.imgbk){const resp=await fetch(KEYS.imgbk,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(inp)});const j=await resp.json();if(j&&j.images&&j.images[0]&&j.images[0].url)return j;if(j&&j.url)return{images:[{url:j.url}]};throw new Error('o motor de imagem próprio não retornou {images:[{url}]}');}
+  const chain=[];
+  if(KEYS.kie)chain.push(['Kie',()=>kieImage(inp)]);
+  if(KEYS.laozhang||KEYS.lzNano)chain.push(['laozhang',()=>lzNanoPro({prompt:inp.prompt,image_urls:inp.image_urls,aspect:inp.aspect_ratio})]);
+  if(KEYS.google)chain.push(['Google',()=>googleImage(inp)]);
+  if(KEYS.fal)chain.push(['fal',()=>falRun(IMG_MODEL,inp)]);
+  if(!chain.length)return await falRun(IMG_MODEL,inp);
+  let lastErr=null;
+  for(let i=0;i<chain.length;i++){const name=chain[i][0],fn=chain[i][1];
+    try{const r=await fn();lastImgEngine=name;return r;}
+    catch(e){lastErr=e;try{console.warn('motor '+name+' indisponível:',(e&&e.message)||e);}catch(_){}}}
+  try{console.warn('todos os motores de imagem falharam:',lastErr&&((lastErr.message)||lastErr));}catch(_){}
+  throw new Error('Geração de imagem indisponível no momento — tente novamente em instantes.');}
+async function vidEngine(inp){if(KEYS.vidbk){const resp=await fetch(KEYS.vidbk,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(inp)});const j=await resp.json();if(j&&j.video&&j.video.url)return j;if(j&&j.url)return{video:{url:j.url}};throw new Error('o motor próprio não retornou {video:{url}}');}return await falRun(VID_MODEL,inp);}
+async function ugcEngine(inp){const resp=await fetch(KEYS.ugcbk,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(inp)});const j=await resp.json();if(j&&j.video&&j.video.url)return j;if(j&&j.url)return{video:{url:j.url}};throw new Error('o motor de UGC próprio não retornou {video:{url}}');}
+let ugcPersona='auto';
+async function describeForUGC(imageUrl,personaPref,dur){
+  if(!KEYS.anthropic||!imageUrl)return null;
+  try{
+    const pp=(personaPref&&personaPref!=='auto')?('Use exactly persona="'+personaPref+'".'):'Decide the persona (woman, man or child) that most naturally uses and recommends this product.';
+    const words=(String(dur)==='10')?'about 20 to 24':'about 9 to 12';
+    let imgSource;const dm=String(imageUrl).match(/^data:(image\/[a-zA-Z+.-]+);base64,(.*)$/);if(dm){imgSource={type:"base64",media_type:dm[1],data:dm[2]};}else{imgSource={type:"url",url:imageUrl};}
+    const resp=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":KEYS.anthropic,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:ANTHROPIC_MODEL,max_tokens:300,messages:[{role:"user",content:[
+        {type:"image",source:imgSource},
+        {type:"text",text:"This is a PRODUCT photo for a UGC video of "+(dur||'5')+" seconds. Reply ONLY with JSON: {\"persona\":\"woman|man|child\",\"look\":\"...\",\"fala\":\"...\"}. persona: "+pp+" look: a SHORT English phrase for the creator's styling and setting that MATCHES the product's positioning — if the product looks premium/luxury, an elegant, well-dressed creator in a refined, tidy environment; if it looks popular/everyday, a relatable everyday creator in a simple but tidy setting. Never mismatched (never a poorly-dressed person with a luxury product). fala: ONE natural spoken sentence in BRAZILIAN PORTUGUESE this person says to camera recommending the product — "+words+" words so it fits comfortably in "+(dur||'5')+" seconds at a natural speaking pace. Casual influencer tone, simple and clearly-pronounceable words, no hashtags, no emojis, no abbreviations."}
+      ]}]})});
+    const j=await resp.json();let t=(j&&j.content&&j.content[0]&&j.content[0].text||'').trim().replace(/```json|```/g,'').trim();
+    return JSON.parse(t);
+  }catch(_){return null;}
+}
+async function falKling({prompt,image_url,dur,aspect}){return await falRun('fal-ai/kling-video/v2.5-turbo/standard/image-to-video',{prompt:prompt||'',image_url:image_url,duration:String(dur||'5'),aspect_ratio:aspect||'9:16'});}
+/* SEM retry externo: cada retentativa de lzVideo cria nova task cobrada.
+   A resiliência fica na cascata de motores (laozhang → Kie → fal), não em repetição. */
+async function retryVid(fn){return await fn();}
+async function runVid(v,anchor){const isUGC=v.audio!==false;const tier=v.tier||'basico';const model=(tier==='premium')?LZ_SORA:LZ_SEEDANCE;const lbl=(tier==='premium')?'IA.Clip Vídeo Pro':'IA.Clip Vídeo';
+  log(tool(IC.video,'v',`${lbl} · ${v.format} · ${v.dur||'5'}s`,'run'),'raw');const r=lastRun();
+  try{let out;
+    if(v.modaCine){/* handoff §3: look com pessoa NUNCA vai pro Seedance i2v (filtro de rosto) — Kling no fal é o motor da passarela */
+      if(KEYS.fal){try{out=await falKling({prompt:v.fmtPrompt,image_url:v.srcUrl,dur:v.dur||'5',aspect:v.aspect||'9:16'});}
+        catch(e1){console.warn('vídeo moda (Kling) falhou, tentando cascata:',(e1&&e1.message)||e1);out=await vidGen({prompt:v.fmtPrompt,image:v.srcUrl,duration:v.dur||'5',ratio:v.aspect||'9:16',audio:false,model:LZ_SEEDANCE});}}
+      else{out=await vidGen({prompt:v.fmtPrompt,image:v.srcUrl,duration:v.dur||'5',ratio:v.aspect||'9:16',audio:false,model:LZ_SEEDANCE});}}
+    else if(KEYS.laozhang){
+      if(isUGC){
+        const p=prodOf(v);
+        const refImgs=(p?S.images.filter(im=>{const q=prodOf(im);return q&&q.id===p.id&&!im.onmodel&&im.url;}):[]).map(im=>im.url).slice(0,2);
+        const refs=v.ugcRef?[v.ugcRef]:(refImgs.length?refImgs:[v.srcUrl]);
+        const d=await describeForUGC(refs[0],ugcPersona,v.dur||'5');
+        const persona=(d&&d.persona)||((ugcPersona&&ugcPersona!=='auto')?ugcPersona:'woman');
+        const fala=(d&&d.fala)?d.fala:'';
+        const speak=fala?(' The creator speaks this line in Brazilian Portuguese at a natural, unhurried conversational pace, starting to talk right away and finishing comfortably before the clip ends, with lip movement accurately synced to each word: "'+fala+'". The mouth moves naturally and matches the words — no silent staring, no rushing, no repeating.'):' The creator looks at the camera and says one natural sentence in Brazilian Portuguese about the product, unhurried, lip movement synced.';
+        const t2v='A real, candid Brazilian '+persona+' content creator films a casual phone-style UGC video, holding and naturally using the product shown in the reference image (keep the product faithful: same shape, color, label and details).'+((d&&d.look)?(' Styling and setting: '+d.look+'.'):'')+' '+v.fmtPrompt+speak+PERSON_REALISM;
+        out=await vidGen({prompt:t2v,images:refs,role:'reference_image',duration:v.dur||'5',ratio:v.aspect||'9:16',audio:true,model:LZ_SEEDANCE});
+      }
+      else{out=await vidGen({prompt:v.fmtPrompt,image:v.srcUrl,duration:v.dur||'5',ratio:v.aspect||'9:16',audio:false,model});}
+    }
+    else{const inp={prompt:v.fmtPrompt,image_url:v.srcUrl,resolution:'720p',aspect_ratio:v.aspect||'9:16',duration:v.dur||'5',generate_audio:isUGC};if(anchor)inp.end_image_url=v.srcUrl;if(!isUGC&&!v.modaCine)inp.negative_prompt=VIDEO_NEGATIVE;out=await retryVid(()=>vidEngine(inp));}
+    const _vu=out&&out.video&&out.video.url;if(!_vu)throw new Error('o motor de vídeo não retornou vídeo (tente de novo)');v.url=_vu;replaceNode(v.id,vidHtml(v));if(r){r.className='st done';r.textContent='done';}log(`Vídeo "${v.format}" pronto.`);save();if(v.audio===false)sugerirComercial();}
+  catch(err){try{console.warn('vídeo falhou:',(err&&err.message)||err);}catch(_){}v.fail='Geração de vídeo indisponível no momento — tente novamente.';replaceNode(v.id,vidHtml(v));if(r){r.className='st fail';r.textContent='fail';}}}
+async function genVideo(id,fi,kind){const im=S.images.find(x=>x.id===id);if(!im||!im.url)return;pop.style.display='none';
+  if(im.moda&&kind==='moda'){const mf=MODA_FMTS[fi];if(!mf)return;if(!needCred(vidCost(curVidDur,false),'vídeo de moda'))return;const _pn=(prodOf(im)&&prodOf(im).name)||'piece';const mva=(['1:1','9:16','16:9'].includes(im.aspect)?im.aspect:'9:16');const msp=childSpot(id,170,Math.round(170*aspRatio(mva))+40+84);const mv={id:'v'+(vc++),parent:id,x:msp.x,y:msp.y,format:mf.format,dur:curVidDur,tier:'basico',aspect:mva,audio:false,modaCine:true,script:'',fmtPrompt:FIDELITY_MODA+'Keep the worn product ('+_pn+') identical and clearly visible the whole time. '+mf.prompt,srcUrl:im.url,url:null,fail:null,sel:false};S.videos.push(mv);S.links.push({from:id,to:mv.id});renderWorld();runVid(mv,true);return;}
+  const ugc=(kind==='ugc');const cine=!ugc;const f=(ugc?PERSON_FMTS:PRODUCT_FMTS)[fi];if(!f)return;const cost=vidCost(curVidDur,ugc);if(!needCred(cost,ugc?'vídeo UGC':'vídeo do produto'))return;const va=cine?(['1:1','9:16','16:9'].includes(im.aspect)?im.aspect:'9:16'):'9:16';const sp=childSpot(id,170,Math.round(170*aspRatio(va))+40+84);
+  const v={id:'v'+(vc++),parent:id,x:sp.x,y:sp.y,format:f.format,dur:curVidDur,tier:'basico',ugcRef:(im.moda&&im.modaProdB64)?im.modaProdB64:null,aspect:va,audio:ugc,script:f.fala||'',fmtPrompt:(cine?FIDELITY_PROD:FIDELITY)+`The hero product is the ${curName}. Keep the framing and focus on the ${curName} the whole time; do not let any other object steal focus. `+f.prompt,srcUrl:im.url,url:null,fail:null,sel:false};S.videos.push(v);S.links.push({from:id,to:v.id});renderWorld();runVid(v,cine);}
+async function regenVideo(id,e){if(e)e.stopPropagation();const v=S.videos.find(x=>x.id===id);if(!v||!v.srcUrl)return;pop.style.display='none';const cost=vidCost(v.dur,v.audio!==false);if(!needCred(cost,'refazer vídeo'))return;v.url=null;v.fail=null;v.sel=false;replaceNode(v.id,vidHtml(v));runVid(v,true);}
+function estVideo(id){const v=S.videos.find(x=>x.id===id);if(!v||!v.srcUrl)return;pop.style.display='none';const cost=vidCost(v.dur,v.audio!==false);if(!needCred(cost,'estender vídeo'))return;const va=v.aspect||'9:16';const sp=childSpot(id,170,Math.round(170*aspRatio(va))+40+84);
+  const nv={id:'v'+(vc++),parent:id,x:sp.x,y:sp.y,format:v.format+' ▸',dur:v.dur||'5',tier:v.tier,aspect:va,audio:v.audio,fmtPrompt:FIDELITY+`The hero product is the ${curName}. Keep focus on the ${curName}. `+'Continue the same scene as the next natural moment. The same person keeps talking casually in Brazilian Portuguese, friendly, like recording on a phone.',srcUrl:v.srcUrl,url:null,fail:null,sel:false};
+  S.videos.push(nv);S.links.push({from:id,to:nv.id});renderWorld();runVid(nv,false);}
+function juntar(){pop.style.display='none';const aps=S.videos.filter(v=>v.sel&&v.url&&v.audio===false);if(aps.length<2)return alert('Selecione (✓) pelo menos 2 cenas de CINEMA pra montar o comercial. O UGC fica separado, não entra na montagem.');if(!needCred(CRED.montagem,'montagem do comercial'))return;
+  const sp=freeSpot(aps[aps.length-1].id,200,200*16/9+44+84);const f={id:'f'+(fc++),clips:aps.map(v=>v.url),durs:aps.map(v=>parseInt(v.dur)||5),x:sp.x,y:sp.y,sel:false};S.finals.push(f);aps.forEach(v=>S.links.push({from:v.id,to:f.id}));renderWorld();save();
+  log(tool('⧉','k',`Vídeo final · ${aps.length} cenas em sequência`,'done'),'raw');}
+
+let lastSugCount=0;
+function sugerirComercial(){const cine=S.videos.filter(v=>v.url&&v.audio===false);if(cine.length<2||cine.length===lastSugCount)return;lastSugCount=cine.length;
+  log(`<div class="msg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 1 4 10c-1 1-1 2-1 3H9c0-1 0-2-1-3a6 6 0 0 1 4-10z"/></svg> Você já tem <b>${cine.length} clipes cinematográficos</b>. Quer que eu junte todos numa <b>cascata só</b> — um comercial único com trilha por cima?</div><div style="margin-top:7px"><button class="kb" style="border-color:var(--orange);color:var(--orange);font-weight:700" onclick="montarComercialAuto()">⧉ Montar comercial agora</button></div>`,'raw');}
+function montarComercialAuto(){const cine=S.videos.filter(v=>v.url&&v.audio===false);cine.forEach(v=>v.sel=true);renderWorld();juntar();}
+
+function paintRailIcons(){const set=(id,svg)=>{const e=document.getElementById(id);if(e&&!e.querySelector('svg'))e.insertAdjacentHTML('afterbegin',svg);};set('rZin',IC.zin);set('rZout',IC.zout);set('rFit',IC.fit);set('rMerge',IC.merge);}
+/* entrada inteligente */
+load();updateCred();applyTheme();paintRailIcons();
+if(S.products&&S.products.length){topdot.classList.add('on');startCanvas();}else{showGate();}
+</script>
+</body>
+</html>
