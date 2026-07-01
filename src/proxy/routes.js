@@ -12,6 +12,10 @@ export const proxyRouter = Router();
 
 const DEFAULT_UPSTREAM_TIMEOUT_MS = 25000;
 const LAOZHANG_UPSTREAM_TIMEOUT_MS = Number(process.env.LAOZHANG_UPSTREAM_TIMEOUT_MS) || 600000;
+// createTask saudável responde em 2–10s; a laozhang às vezes trava a conexão
+// sem responder, deixando o cliente pendurado. Prazo curto aqui faz o canvas
+// cair rápido para o motor reserva (Kie) em vez de esperar 10 min.
+const LAOZHANG_CREATE_TIMEOUT_MS = Number(process.env.LAOZHANG_CREATE_TIMEOUT_MS) || 90000;
 const LAOZHANG_RETRY_DELAYS_MS = [0, 2000, 5000, 10000];
 
 const TARGETS = {
@@ -277,6 +281,9 @@ function isLaozhangBillablePost(method, url) {
 
 async function requestLaozhang(url, fetchOpts, timeoutMs) {
   const billable = isLaozhangBillablePost(fetchOpts.method, url);
+  // createTask: prazo curto — se a laozhang travar sem responder, o canvas
+  // recebe 503 transient rápido e cai para o motor reserva (Kie).
+  if (billable) timeoutMs = Math.min(timeoutMs, LAOZHANG_CREATE_TIMEOUT_MS);
   const delays = billable ? [0] : LAOZHANG_RETRY_DELAYS_MS;
   let lastErr;
   for (let i = 0; i < delays.length; i++) {
@@ -323,6 +330,7 @@ function requestLaozhangHttps(url, fetchOpts, timeoutMs) {
       const chunks = [];
       res.on('data', (c) => chunks.push(c));
       res.on('end', () => {
+        clearTimeout(hardDeadline);
         resolve({
           status: res.statusCode || 502,
           headers: res.headers,
@@ -331,10 +339,20 @@ function requestLaozhangHttps(url, fetchOpts, timeoutMs) {
       });
     });
 
+    // O evento 'timeout' do socket só dispara por INATIVIDADE. Se o upstream
+    // mantiver a conexão viva sem nunca responder, ele não dispara — por isso
+    // o prazo absoluto abaixo, que garante erro (→ 503 transient) no prazo.
+    const hardDeadline = setTimeout(() => {
+      req.destroy(new Error(`upstream deadline after ${timeoutMs}ms`));
+    }, timeoutMs + 1000);
+
     req.on('timeout', () => {
       req.destroy(new Error(`upstream timeout after ${timeoutMs}ms`));
     });
-    req.on('error', reject);
+    req.on('error', (err) => {
+      clearTimeout(hardDeadline);
+      reject(err);
+    });
 
     if (hasBody) req.write(fetchOpts.body);
     req.end();
