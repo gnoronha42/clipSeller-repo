@@ -14,6 +14,9 @@ export function publicUser(u) {
     isActive: u.is_active,
     hasAccess: u.has_access,
     mustChangePassword: u.must_change_password,
+    credits: u.credits ?? 0,
+    createdAt: u.created_at,
+    updatedAt: u.updated_at,
   };
 }
 
@@ -109,7 +112,7 @@ export async function changePassword(userId, currentPassword, newPassword) {
 
 export async function listUsers() {
   const { rows } = await query(
-    `SELECT id, email, name, role, is_active, has_access, must_change_password,
+    `SELECT id, email, name, role, is_active, has_access, must_change_password, credits,
             created_at, updated_at
        FROM users
       ORDER BY created_at DESC`,

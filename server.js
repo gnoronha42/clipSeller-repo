@@ -8,7 +8,9 @@ import { fileURLToPath } from 'node:url';
 import authRoutes from './src/auth/routes.js';
 import adminRoutes from './src/users/adminRoutes.js';
 import creditsRoutes, { webhookRouter as creditsWebhookRouter } from './src/credits/routes.js';
+import hotmartRoutes from './src/hotmart/routes.js';
 import { proxyRouter } from './src/proxy/routes.js';
+import { mediaRouter } from './src/media/routes.js';
 import { clipsellerHtmlRouter } from './src/clipseller/htmlRoute.js';
 import { runMigrations } from './src/db/migrate.js';
 import { ensureAdmin } from './src/db/seedAdmin.js';
@@ -29,6 +31,7 @@ app.use('/clipseller-html', clipsellerHtmlRouter);
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use('/api/media', mediaRouter);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'clipseller', ts: Date.now() }));
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
@@ -38,6 +41,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/credits', creditsRoutes);
 // Webhook MP é público: /api/credits/webhook (montado SEM auth)
 app.use('/api/credits', creditsWebhookRouter);
+// Webhook Hotmart standalone: /api/webhooks/hotmart
+app.use('/api/webhooks', hotmartRoutes);
 
 // Estáticos: imagens, login, set-password, forgot
 app.use(express.static(resolve(__dirname, 'public'), {

@@ -17,6 +17,25 @@ const router = Router();
 const loginLimiter = rateLimit({ windowMs: 60_000, max: 10, standardHeaders: true });
 const forgotLimiter = rateLimit({ windowMs: 60_000, max: 5, standardHeaders: true });
 
+function setAuthCookie(res, token) {
+  res.cookie('cs_token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+}
+
+function clearAuthCookie(res) {
+  res.clearCookie('cs_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+  });
+}
+
 router.post('/login', loginLimiter, async (req, res) => {
   const { email, password } = req.body || {};
   if (!email || !password) return res.status(400).json({ error: 'Informe e-mail e senha' });
@@ -32,6 +51,7 @@ router.post('/login', loginLimiter, async (req, res) => {
   const ok = await verifyPassword(user, password);
   if (!ok) return res.status(401).json({ error: 'E-mail ou senha inválidos' });
   const token = signToken({ sub: user.id, email: user.email, role: user.role });
+  setAuthCookie(res, token);
   return res.json({
     accessToken: token,
     mustChangePassword: user.must_change_password,
@@ -70,6 +90,7 @@ router.post('/set-password', forgotLimiter, async (req, res) => {
   try {
     const user = await consumeResetToken(email, token, password);
     const accessToken = signToken({ sub: user.id, email: user.email, role: user.role });
+    setAuthCookie(res, accessToken);
     return res.json({ accessToken, user: publicUser(user), mustChangePassword: false });
   } catch (err) {
     return res.status(400).json({ error: err.message });
@@ -86,12 +107,16 @@ router.post('/change-password', requireAuth, async (req, res) => {
   try {
     const user = await changePassword(req.user.id, currentPassword, newPassword);
     const accessToken = signToken({ sub: user.id, email: user.email, role: user.role });
+    setAuthCookie(res, accessToken);
     return res.json({ accessToken, user: publicUser(user), mustChangePassword: false });
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
 });
 
-router.post('/logout', requireAuth, (_req, res) => res.json({ ok: true }));
+router.post('/logout', requireAuth, (_req, res) => {
+  clearAuthCookie(res);
+  res.json({ ok: true });
+});
 
 export default router;

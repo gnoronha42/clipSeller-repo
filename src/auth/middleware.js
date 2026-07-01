@@ -4,7 +4,6 @@ import { findUserById } from '../users/service.js';
 function extractToken(req) {
   const auth = req.headers.authorization || '';
   if (auth.toLowerCase().startsWith('bearer ')) return auth.slice(7).trim();
-  if (req.query && typeof req.query.token === 'string') return req.query.token;
   if (req.cookies && req.cookies.cs_token) return req.cookies.cs_token;
   return null;
 }

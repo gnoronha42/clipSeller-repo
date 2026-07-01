@@ -51,6 +51,99 @@ export async function listTransactions(userId, { limit = 50 } = {}) {
   return rows;
 }
 
+export async function getGenerationDashboard({ userId, isAdmin = false, days = 30 } = {}) {
+  const safeDays = Math.max(1, Math.min(365, Number(days) || 30));
+  const scopeWhere = isAdmin ? '' : 'AND ct.user_id = $2';
+  const params = isAdmin ? [safeDays] : [safeDays, userId];
+
+  const [summary, byFeature, daily, topUsers] = await Promise.all([
+    query(
+      `SELECT
+          COUNT(*)::int AS total_generations,
+          COALESCE(SUM(ABS(ct.credits)), 0)::int AS credits_consumed,
+          COUNT(DISTINCT ct.user_id)::int AS active_users,
+          COALESCE(AVG(ABS(ct.credits)), 0)::numeric(10,2) AS avg_credits
+        FROM credit_transactions ct
+       WHERE ct.type = 'debit'
+         AND ct.created_at >= now() - ($1::int * interval '1 day')
+         ${scopeWhere}`,
+      params,
+    ),
+    query(
+      `SELECT
+          COALESCE(ct.feature_key, 'unknown') AS feature_key,
+          COALESCE(fc.label, ct.description, ct.feature_key, 'Geração') AS label,
+          COALESCE(fc.category, 'outros') AS category,
+          COUNT(*)::int AS generations,
+          COALESCE(SUM(ABS(ct.credits)), 0)::int AS credits
+        FROM credit_transactions ct
+        LEFT JOIN feature_costs fc ON fc.feature_key = ct.feature_key
+       WHERE ct.type = 'debit'
+         AND ct.created_at >= now() - ($1::int * interval '1 day')
+         ${scopeWhere}
+       GROUP BY COALESCE(ct.feature_key, 'unknown'), COALESCE(fc.label, ct.description, ct.feature_key, 'Geração'), COALESCE(fc.category, 'outros')
+       ORDER BY generations DESC, credits DESC
+       LIMIT 12`,
+      params,
+    ),
+    query(
+      `SELECT
+          to_char(gs.day::date, 'YYYY-MM-DD') AS date,
+          COALESCE(counts.generations, 0)::int AS generations,
+          COALESCE(counts.credits, 0)::int AS credits
+        FROM generate_series(
+          (current_date - ($1::int - 1) * interval '1 day')::date,
+          current_date,
+          interval '1 day'
+        ) AS gs(day)
+        LEFT JOIN (
+          SELECT
+              date_trunc('day', ct.created_at)::date AS day,
+              COUNT(*)::int AS generations,
+              COALESCE(SUM(ABS(ct.credits)), 0)::int AS credits
+            FROM credit_transactions ct
+           WHERE ct.type = 'debit'
+             AND ct.created_at >= now() - ($1::int * interval '1 day')
+             ${scopeWhere}
+           GROUP BY date_trunc('day', ct.created_at)::date
+        ) counts ON counts.day = gs.day::date
+       ORDER BY gs.day`,
+      params,
+    ),
+    isAdmin
+      ? query(
+          `SELECT
+              u.id,
+              u.name,
+              u.email,
+              COUNT(*)::int AS generations,
+              COALESCE(SUM(ABS(ct.credits)), 0)::int AS credits
+            FROM credit_transactions ct
+            JOIN users u ON u.id = ct.user_id
+           WHERE ct.type = 'debit'
+             AND ct.created_at >= now() - ($1::int * interval '1 day')
+           GROUP BY u.id, u.name, u.email
+           ORDER BY generations DESC, credits DESC
+           LIMIT 8`,
+          [safeDays],
+        )
+      : Promise.resolve({ rows: [] }),
+  ]);
+
+  return {
+    days: safeDays,
+    summary: summary.rows[0] || {
+      total_generations: 0,
+      credits_consumed: 0,
+      active_users: 0,
+      avg_credits: 0,
+    },
+    byFeature: byFeature.rows,
+    daily: daily.rows,
+    topUsers: topUsers.rows,
+  };
+}
+
 /**
  * Debita créditos do usuário de forma atômica. Retorna o saldo após ou lança
  * Error('insufficient_credits') se não der.

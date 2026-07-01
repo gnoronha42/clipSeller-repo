@@ -125,13 +125,16 @@
           '</div>' +
         '</div>';
     } else {
-      var token = encodeURIComponent(localStorage.getItem(TOKEN_KEY) || '');
       var balanceLabel = u.role === 'admin' ? '∞' : '…';
+      var adminBtn = u.role === 'admin'
+        ? '<button id="adminUsersBtn" class="admin-pill" type="button">Usuários</button>'
+        : '';
       root.innerHTML = '' +
         '<div class="app-shell">' +
           '<div class="app-header">' +
             '<div class="app-brand"><img src="/img/IMG_9841.PNG" alt="ClipSeller" /><span>ClipSeller</span></div>' +
             '<div class="app-actions">' +
+              adminBtn +
               '<a id="creditsLink" href="/credits.html" class="credits-pill" title="Comprar / ver consumo">' +
                 '<span class="cp-label">Créditos</span><span class="cp-value" id="hdrBalance">' + balanceLabel + '</span>' +
               '</a>' +
@@ -139,17 +142,173 @@
               '<button id="logoutBtn">Sair</button>' +
             '</div>' +
           '</div>' +
-          '<iframe class="app-frame" src="/clipseller-html?token=' + token + '" allow="clipboard-write; clipboard-read"></iframe>' +
+          '<iframe class="app-frame" src="/clipseller-html" allow="clipboard-write; clipboard-read"></iframe>' +
         '</div>';
 
       if (u.role !== 'admin') refreshHeaderBalance();
     }
 
-    document.getElementById('logoutBtn').addEventListener('click', function () {
+    document.getElementById('logoutBtn').addEventListener('click', async function () {
+      try { await api('/api/auth/logout', { method: 'POST' }); } catch (_) {}
       clearSession();
       renderLogin();
     });
+    var usersBtn = document.getElementById('adminUsersBtn');
+    if (usersBtn) usersBtn.addEventListener('click', renderAdminUsers);
   }
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function fmtDate(value) {
+    if (!value) return '-';
+    try {
+      return new Date(value).toLocaleString('pt-BR', {
+        day: '2-digit', month: '2-digit', year: '2-digit',
+        hour: '2-digit', minute: '2-digit',
+      });
+    } catch (_) {
+      return '-';
+    }
+  }
+
+  function renderUsersRows(users) {
+    if (!users.length) {
+      return '<tr><td colspan="7" class="admin-empty">Nenhum usuário encontrado.</td></tr>';
+    }
+    return users.map(function (u) {
+      var roleClass = u.role === 'admin' ? 'role-admin' : 'role-user';
+      return '' +
+        '<tr data-user-id="' + escapeHtml(u.id) + '">' +
+          '<td><strong>' + escapeHtml(u.name || '-') + '</strong><small>' + escapeHtml(u.email) + '</small></td>' +
+          '<td><span class="role-badge ' + roleClass + '">' + escapeHtml(u.role) + '</span></td>' +
+          '<td>' + (u.isActive ? '<span class="ok">Ativo</span>' : '<span class="bad">Inativo</span>') + '</td>' +
+          '<td>' + (u.hasAccess ? '<span class="ok">Liberado</span>' : '<span class="bad">Bloqueado</span>') + '</td>' +
+          '<td>' + Number(u.credits || 0).toLocaleString('pt-BR') + '</td>' +
+          '<td>' + fmtDate(u.createdAt) + '</td>' +
+          '<td class="admin-row-actions">' +
+            '<button data-action="access" data-value="' + (!u.hasAccess) + '">' + (u.hasAccess ? 'Bloquear' : 'Liberar') + '</button>' +
+            '<button data-action="active" data-value="' + (!u.isActive) + '">' + (u.isActive ? 'Desativar' : 'Ativar') + '</button>' +
+          '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  async function loadAdminUsers() {
+    var table = document.getElementById('adminUsersTableBody');
+    var status = document.getElementById('adminUsersStatus');
+    if (!table) return;
+    table.innerHTML = '<tr><td colspan="7" class="admin-empty">Carregando...</td></tr>';
+    var resp = await api('/api/admin/users');
+    if (!resp.ok) {
+      table.innerHTML = '<tr><td colspan="7" class="admin-empty error">Falha ao carregar usuários.</td></tr>';
+      if (status) status.textContent = resp.data.error || 'Erro ao carregar usuários.';
+      return;
+    }
+    var users = resp.data.users || [];
+    table.innerHTML = renderUsersRows(users);
+    if (status) status.textContent = users.length + ' usuário(s) encontrado(s).';
+    table.querySelectorAll('button[data-action]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        var tr = btn.closest('tr');
+        var id = tr && tr.getAttribute('data-user-id');
+        var action = btn.getAttribute('data-action');
+        var value = btn.getAttribute('data-value') === 'true';
+        if (!id) return;
+        btn.disabled = true;
+        var path = action === 'access'
+          ? '/api/admin/users/' + encodeURIComponent(id) + '/access'
+          : '/api/admin/users/' + encodeURIComponent(id) + '/active';
+        var body = action === 'access' ? { hasAccess: value } : { isActive: value };
+        var out = await api(path, { method: 'PATCH', body: JSON.stringify(body) });
+        btn.disabled = false;
+        if (!out.ok) {
+          alert(out.data.error || 'Falha ao atualizar usuário.');
+          return;
+        }
+        loadAdminUsers();
+      });
+    });
+  }
+
+  function renderAdminUsers() {
+    var u = currentUser();
+    if (!u || u.role !== 'admin') return;
+    var frame = document.querySelector('.app-frame');
+    if (frame) frame.remove();
+    var existing = document.getElementById('adminUsersPanel');
+    if (existing) existing.remove();
+    var shell = document.querySelector('.app-shell');
+    if (!shell) return;
+    var panel = document.createElement('main');
+    panel.id = 'adminUsersPanel';
+    panel.className = 'admin-panel';
+    panel.innerHTML = '' +
+      '<section class="admin-hero">' +
+        '<div><h1>Usuários ClipSeller</h1><p>Gerencie compradores, acesso e status de conta.</p></div>' +
+        '<button id="adminBackToStudio" type="button">Voltar ao estúdio</button>' +
+      '</section>' +
+      '<section class="admin-card">' +
+        '<h2>Criar usuário comum</h2>' +
+        '<form id="adminCreateUserForm" class="admin-form">' +
+          '<input name="name" placeholder="Nome" autocomplete="name">' +
+          '<input name="email" type="email" placeholder="E-mail" autocomplete="email" required>' +
+          '<label class="admin-check"><input name="hasAccess" type="checkbox" checked> liberar acesso</label>' +
+          '<label class="admin-check"><input name="sendWelcome" type="checkbox" checked> enviar e-mail para definir senha</label>' +
+          '<button type="submit">Criar usuário</button>' +
+        '</form>' +
+        '<div id="adminCreateStatus" class="admin-status"></div>' +
+      '</section>' +
+      '<section class="admin-card">' +
+        '<div class="admin-list-head"><h2>Lista de usuários</h2><button id="adminRefreshUsers" type="button">Atualizar</button></div>' +
+        '<div id="adminUsersStatus" class="admin-status"></div>' +
+        '<div class="admin-table-wrap"><table class="admin-table">' +
+          '<thead><tr><th>Usuário</th><th>Tipo</th><th>Status</th><th>Acesso</th><th>Créditos</th><th>Criado em</th><th>Ações</th></tr></thead>' +
+          '<tbody id="adminUsersTableBody"></tbody>' +
+        '</table></div>' +
+      '</section>';
+    shell.appendChild(panel);
+    document.getElementById('adminBackToStudio').addEventListener('click', renderApp);
+    document.getElementById('adminRefreshUsers').addEventListener('click', loadAdminUsers);
+    document.getElementById('adminCreateUserForm').addEventListener('submit', async function (ev) {
+      ev.preventDefault();
+      var form = ev.currentTarget;
+      var status = document.getElementById('adminCreateStatus');
+      var btn = form.querySelector('button[type=submit]');
+      var fd = new FormData(form);
+      btn.disabled = true;
+      status.textContent = 'Criando...';
+      var out = await api('/api/admin/users', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: fd.get('name'),
+          email: fd.get('email'),
+          hasAccess: fd.get('hasAccess') === 'on',
+          sendWelcome: fd.get('sendWelcome') === 'on',
+        }),
+      });
+      btn.disabled = false;
+      if (!out.ok) {
+        status.textContent = out.data.error || 'Falha ao criar usuário.';
+        status.className = 'admin-status error';
+        return;
+      }
+      status.textContent = 'Usuário criado. Se marcado, o e-mail de definição de senha foi enviado.';
+      status.className = 'admin-status ok';
+      form.reset();
+      form.querySelector('input[name=hasAccess]').checked = true;
+      form.querySelector('input[name=sendWelcome]').checked = true;
+      loadAdminUsers();
+    });
+    loadAdminUsers();
+  }
+  window.showClipSellerAdminUsers = renderAdminUsers;
 
   async function refreshHeaderBalance() {
     var el = document.getElementById('hdrBalance');
@@ -160,7 +319,12 @@
 
   // Escuta atualizações de saldo enviadas pelo iframe ClipSeller após débito.
   window.addEventListener('message', function (ev) {
-    if (!ev.data || ev.data.type !== 'cs:balance') return;
+    if (!ev.data) return;
+    if (ev.data.type === 'cs:admin-users') {
+      renderAdminUsers();
+      return;
+    }
+    if (ev.data.type !== 'cs:balance') return;
     var el = document.getElementById('hdrBalance');
     if (!el) return;
     if (typeof ev.data.balance === 'number') {

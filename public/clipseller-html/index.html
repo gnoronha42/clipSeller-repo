@@ -140,7 +140,7 @@
 <div class="app" id="app">
   <div class="top"><button class="kb" onclick="toggleSide()" id="sideBtn" title="Recolher / mostrar menu" style="padding:7px 9px;margin-right:2px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button><div class="logo">C</div><h1>CLIPSELLER</h1>
     <div class="tab"><span class="dot" id="topdot"></span> Canvas de Campanha</div>
-    <div class="right"><span class="cred" id="cred" onclick="topUp()" title="Adicionar créditos (demo)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="12" cy="12" r="8"/><path d="M14.5 9.5a3 3 0 1 0 0 5"/></svg> <b id="credn">500</b></span><button class="kb" onclick="toggleTheme()" id="themeBtn" title="Painel preto / branco">◐ Tema</button><button class="kb" onclick="togglePanel()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg> Diretor</button><button class="kb" onclick="showGate()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="8" cy="8" r="3"/><path d="M10.2 10.2 18 18M16 18l2-2 2 2-2 2z"/></svg> Chaves</button></div></div>
+    <div class="right"><span class="cred" id="cred" onclick="topUp()" title="Adicionar créditos (demo)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="12" cy="12" r="8"/><path d="M14.5 9.5a3 3 0 1 0 0 5"/></svg> <b id="credn">500</b></span><button class="kb" onclick="toggleTheme()" id="themeBtn" title="Painel preto / branco">◐ Tema</button><button class="kb" onclick="togglePanel()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg> Diretor</button></div></div>
   <nav class="side" id="side">
     <div class="sgrp">Estúdios</div>
     <div class="si" onclick="goStation('rapida',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 11-13h-7l0-7z"/></svg><span>Geração Rápida</span></div>
@@ -150,7 +150,6 @@
     <div class="si" onclick="goStation('acessorios',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12l3 5-9 13L3 8z"/><path d="M3 8h18M9 3 6 8l6 13 6-13-3-5"/></svg>Estúdio de Acessórios</div>
     <div class="si" onclick="goStation('titulo',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Gerador de Título</div>
     <div class="sgrp">Sistema</div>
-    <div class="si" onclick="goStation('chaves',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7.5" cy="15.5" r="3.5"/><path d="m10 13 8-8M16 5l3 3M19 2l3 3"/></svg>Chaves & Config</div>
   </nav>
   <main class="stage" id="stage" style="display:none">
     <div id="world"><svg id="wires"></svg></div>
@@ -233,12 +232,33 @@ const FIDELITY_PROD="The product must stay completely identical and unchanged th
 const VIDEO_NEGATIVE="person, people, human, man, woman, crowd, pedestrian, walking, hands, fingers, camera, dslr, photo camera, lens, tripod, phone, device, gadget, new objects, extra objects, duplicate, morphing, deformation, melting, distorted text, warped text, watermark";
 const IMG_FIDELITY="Reproduce the product with its exact real design, label, text, logo, colors, proportions and true-to-life scale. Do NOT redesign, distort, restyle or resize it unrealistically. ";
 const PERSON_REALISM=" The person is a real, everyday Brazilian — candid and authentic, like a genuine amateur phone photo, NOT a polished catalog or AI model. Natural skin with real texture and minor imperfections, realistic body proportions, relaxed casual pose and expression, natural available daylight, no glossy retouching, no plastic skin. Authentic UGC realism.";
+const PERSON_REALISM_POLISHED=" The person is a real Brazilian filmed candidly on a phone (authentic UGC, NOT a studio catalog shot), but well-groomed and put-together — good skin with natural real texture (not airbrushed, not plastic), tidy styled hair, tasteful minimal makeup, confident aspirational vibe that fits a premium product. Natural available light, handheld phone feel, still believable and real, never an obvious AI model.";
+const UGC_ARCHETYPES={
+  confident:"with bold confident energy, filming themselves in a mirror or at arm's length, light body movement showing the product in use",
+  close_friend:"talking to the camera like telling a close friend a secret, intimate and warm, leaning slightly toward the phone",
+  skincare_luxe:"with a calm soft-luxury vibe, clean healthy skin, doing a relaxed daily ritual, elegant but real and at-home",
+  wellness_calm:"with a serene, honest, gentle calm presence, unhurried, cozy and reassuring, like sharing something that makes them feel good",
+  everyday_relatable:"a relatable everyday person, casual and genuine, the kind of normal creator your friend would trust"
+};
+const UGC_RULES=" STYLE RULES (critical for realism): real iPhone front-camera selfie look, vertical 9:16, handheld with subtle natural micro-movements and slight autofocus breathing, slightly imperfect framing. Natural indoor daylight, NO studio lighting, NO cinematic look, NO filters, NO beauty smoothing, NO background music, NO on-screen subtitles or text, NO overacting, NO exaggerated expressions, no eye-closing, no repeated actions. The product must match the reference exactly — same shape, color, label, logo, proportions; never redesigned, distorted or morphed. The performance must feel like a spontaneous real recommendation, not an ad or a script. Natural Brazilian Portuguese voice with slight natural pauses.";
+function genderWord(p){return p==='man'?'man':p==='child'?'kid':'woman';}
+function buildUGCPrompt(d,productNoun,fmtPrompt,speak){
+  const p=(d&&d.persona)||'woman';const g=genderWord(p);
+  const arche=(d&&d.archetype&&UGC_ARCHETYPES[d.archetype])||UGC_ARCHETYPES.everyday_relatable;
+  const model=(d&&d.model)?(', '+d.model):'';
+  const who=(d&&d.archetype==='everyday_relatable')?('a relatable everyday Brazilian '+g+model):('a Brazilian '+g+model+' '+arche);
+  const action=(d&&d.action)?(' This person '+d.action+'.'):' This person holds and naturally shows the product.';
+  const look=(d&&d.look)?(' Styling and setting: '+d.look+'.'):'';
+  // realismo é sempre "filmado no celular, autêntico" — mas a APARÊNCIA da pessoa vem do campo model (o Diretor decide se é sofisticada ou simples conforme o produto)
+  const realism=(d&&(d.archetype==='skincare_luxe'||d.archetype==='confident'))?PERSON_REALISM_POLISHED:PERSON_REALISM;
+  return who+' films a casual phone-style UGC video.'+action+' Keep the product faithful (same shape, color, label and details).'+look+' '+fmtPrompt+speak+realism+UGC_RULES;
+}
 const VAR_STYLES=["shot as a clean top-down flat lay on a neutral surface","a dramatic low side angle with soft directional light and gentle shadows","placed in a real Brazilian lifestyle setting (e.g. on a wooden table at home), natural daylight","an extreme macro close-up highlighting the material, texture and finish","on a bold solid-color seamless studio background","a wide premium catalog hero shot with lots of negative space","styled with a few simple complementary props around it","a high angle looking straight down, modern e-commerce style"];
-const LSK='clipseller_v31',KSK='clipseller_keys';
-const CRED={imgPremium:12,imgBasico:8,inspirada:15,titulo:10,modaLook:14,vidProd5:60,vidProd10:100,ugc5:70,ugc10:130,montagem:30};
+const LSK='clipseller_v43',KSK='clipseller_keys';
+const CRED={imgPremium:12,imgBasico:8,inspirada:15,titulo:10,modaLook:15,vidProd5:60,vidProd10:100,ugc5:70,ugc10:130,montagem:30};
 function vidCost(dur,isUgc){var d=parseInt(dur)||5;return isUgc?(d>=10?CRED.ugc10:CRED.ugc5):(d>=10?CRED.vidProd10:CRED.vidProd5);}
 let credits=500, theme='light';
-let KEYS={anthropic:"",fal:"",kie:"",google:"",laozhang:"",lzSora:"",lzImg:"",lzNano:"",proxy:"",vidbk:"",imgbk:"",ugcbk:"",fashn:""};
+let KEYS={anthropic:"",fal:"",kie:"",google:"",laozhang:"",lzSora:"",lzImg:"",lzNano:"",proxy:"http://localhost:8787",vidbk:"",imgbk:"",ugcbk:"",fashn:""};
 let photos=[],curName="",curGoal="",curPersona="tanto faz",curNiche="pessoa",curSub="",curCount=5,curAspect="1:1",curImgTier="premium",curVidTier="basico";
 const LZ_BASE="https://api.laozhang.ai/v1", LZ_SEEDANCE="doubao-seedance-2-0-fast-260128", LZ_SORA="sora-2", LZ_IMG_PRO="gemini-3-pro-image-preview";
 let imgEngineMode='lz',lastImgEngine='';
@@ -267,7 +287,7 @@ function renderInspirada(){const st=document.getElementById('station');if(!st)re
     </div>
     <input id="inspName" placeholder="Nome do produto (ex: bolsa de couro feminina)">
     <input id="inspExtra" placeholder="Ajuste opcional (ex: fundo mais claro, sem pessoas)">
-    <button class="tgen" onclick="genInspirada()">Gerar foto inspirada · 15 cr</button>
+    <button class="tgen" onclick="genInspirada()">Gerar foto inspirada · 15 créditos</button>
     <div id="inspOut" class="insp-out"></div></div>`;
   if(inspProd)setInspPreview('prod',inspProd);if(inspRef)setInspPreview('ref',inspRef);if(inspLastUrl)showInspResult(inspLastUrl);}
 function setInspPreview(kind,url){const ph=document.getElementById(kind==='prod'?'inspPhProd':'inspPhRef');if(ph)ph.innerHTML=`<img src="${url}" alt="" style="width:100%;height:100%;object-fit:cover">`;}
@@ -292,7 +312,7 @@ async function genInspirada(){const out=document.getElementById('inspOut');
     const r=await imgEngine({prompt,image_urls:[cleanProd,refN],num_images:1,aspect_ratio:'auto',output_format:'jpeg',resolution:'2K'});
     const url=r&&r.images&&r.images[0]&&r.images[0].url;if(!url)throw new Error('o motor não retornou imagem (tente de novo)');inspLastUrl=url;showInspResult(url);
   }catch(err){out.innerHTML=`<div class="err">Não consegui gerar: ${(err&&err.message)||err}</div>`;}}
-async function removeBgFal(b64){const r=await fetch('https://fal.run/fal-ai/birefnet',{method:'POST',headers:{'Authorization':'Key '+KEYS.fal,'Content-Type':'application/json'},body:JSON.stringify({image_url:b64,model:'General Use (Heavy)','operating_speed':'normal','refine_foreground':true})});
+async function removeBgFal(b64){const r=await fetch(px('https://fal.run/fal-ai/birefnet'),{method:'POST',headers:{'Authorization':'Key '+KEYS.fal,'Content-Type':'application/json'},body:JSON.stringify({image_url:b64,model:'General Use (Heavy)','operating_speed':'normal','refine_foreground':true})});
   if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error('recorte '+r.status+': '+(e.detail||e.message||''));}
   const d=await r.json();const url=(d.image&&d.image.url)||(d.images&&d.images[0]&&d.images[0].url);if(!url)throw new Error('recorte sem URL');
   const res=await fetch(url);const blob=await res.blob();return new Promise(rs=>{const fr=new FileReader();fr.onload=e=>rs(e.target.result);fr.readAsDataURL(blob);});}
@@ -303,9 +323,9 @@ async function inAnalyzeReference(refB64,name){const normalized=await inNormaliz
   const userInstr=`Analise esta foto de referência. Descreva em INGLÊS conciso (máx 150 palavras, frase fluida, sem listas, sem JSON): 1) ambiente/cenário (materiais, superfícies, props); 2) iluminação (tipo, direção, dureza, temperatura); 3) paleta de cores e mood; 4) composição e ângulo de câmera; 5) mood geral; 6) estilo fotográfico. NÃO descreva o produto específico nem marcas. Descreva com riqueza pra a cena ser RECRIADA com outro produto. Comece direto pela descrição.`;
   const d=await anthropicMsg({model:ANTHROPIC_MODEL,max_tokens:600,system:sys,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:'image/jpeg',data:refData}},{type:'text',text:userInstr}]}]});return (d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();}
 function inBuildPrompt(name,cat,aesthetic,extra){return ['TASK: Create a new product photo by combining elements from the two input images.','','IMAGE 1 (PRODUCT REFERENCE): This is the product. Preserve it 100% identical in the output — exact same shape, color, material, all visible details. The product from Image 1 is the only product that appears in the final photo.','','IMAGE 2 (STYLE REFERENCE): Use only the AESTHETIC of this image — the lighting, mood, composition, camera angle, color palette, background style, and overall photographic genre. DO NOT copy the specific product, model, person, or objects from Image 2 into the output.','','AESTHETIC DETAILS (from Image 2):',aesthetic,'','OUTPUT REQUIREMENTS:','- A new scene that has NEVER existed before — not a copy of Image 2','- The product from Image 1 placed naturally in a NEW environment that matches the aesthetic','- Lighting, composition and color palette match the style reference','- No people from Image 2 carried over','- No specific objects from Image 2 carried over','- Professional e-commerce quality, photorealistic, sharp focus on the product',extra?('- User adjustment: '+extra):''].filter(Boolean).join('\n');}
-async function fashnRun(modelName,inputs){if(!KEYS.fashn)throw new Error('Configure a chave do Motor de Moda em Chaves & Config.');
+async function fashnRun(modelName,inputs){if(!KEYS.fashn)throw new Error('Motor de Moda indisponível no momento.');
   let r=null,last='';
-  for(let a=0;a<4;a++){try{r=await fetch('https://api.fashn.ai/v1/run',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+KEYS.fashn},body:JSON.stringify({model_name:modelName,inputs})});}catch(net){last='Moda sem resposta: '+((net&&net.message)||net);await new Promise(res=>setTimeout(res,2500*(a+1)));continue;}
+  for(let a=0;a<5;a++){try{r=await fetch(px('https://api.fashn.ai/v1/run'),{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+KEYS.fashn},body:JSON.stringify({model_name:modelName,inputs})});}catch(net){last='Moda sem resposta: '+((net&&net.message)||net);await new Promise(res=>setTimeout(res,2500*(a+1)));continue;}
     if(r.ok)break;
     const e=await r.json().catch(()=>({}));const hint=r.status===401?' — chave do Motor de Moda inválida':r.status===402?' — créditos do Motor de Moda esgotados':'';last='Moda '+r.status+hint+': '+((e.error&&(e.error.message||e.error))||e.message||'');
     if(r.status===429||r.status===503||r.status===502||r.status===500){await new Promise(res=>setTimeout(res,2500*(a+1)));continue;}
@@ -313,7 +333,7 @@ async function fashnRun(modelName,inputs){if(!KEYS.fashn)throw new Error('Config
   if(!r||!r.ok)throw new Error(last||'Moda: indisponível, tente de novo');
   const d=await r.json();if(!d.id)throw new Error('Motor de Moda não retornou ID');
   for(let i=0;i<90;i++){await new Promise(res=>setTimeout(res,4000));
-    const s=await fetch('https://api.fashn.ai/v1/status/'+d.id,{headers:{'Authorization':'Bearer '+KEYS.fashn}});if(!s.ok)continue;
+    const s=await fetch(px('https://api.fashn.ai/v1/status/'+d.id),{headers:{'Authorization':'Bearer '+KEYS.fashn}});if(!s.ok)continue;
     const sd=await s.json();const st=(sd.status||'').toLowerCase();
     if(st==='completed'){const url=Array.isArray(sd.output)?sd.output[0]:sd.output;if(url)return url;throw new Error('Moda: sem URL no output');}
     if(st==='failed'||st==='error')throw new Error('Moda falhou: '+((sd.error&&(sd.error.message||sd.error))||'tente de novo'));}
@@ -326,7 +346,7 @@ function renderModa(){const st=document.getElementById('station');if(!st)return;
     <div class="insp-up" style="grid-template-columns:1fr"><label class="insp-tile" style="aspect-ratio:16/10"><input type="file" accept="image/*" onchange="modaUpload(this)"><div class="insp-ph" id="modaPh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3a2 2 0 0 1 2 2c0 1.2-1 1.8-2 2.3l7 3.7v9H5v-9l7-3.7C11 6.8 10 6.2 10 5a2 2 0 0 1 2-2z"/></svg>Peça / produto<small>roupa · calçado · acessório</small></div></label></div>
     <input id="modaModel" placeholder="Modelo (opcional): ex. mulher brasileira 30 anos, cabelo cacheado">
     <select id="modaAsp"><option value="3:4">Retrato 3:4 (e-commerce)</option><option value="1:1">Quadrado 1:1 (Shopee)</option><option value="9:16">Story 9:16</option></select>
-    <button class="tgen" onclick="genModa()">Vestir na modelo · 20 cr</button>
+    <button class="tgen" onclick="genModa()">Vestir na modelo · 20 créditos</button>
     <div id="modaOut" class="insp-out"></div></div>`;
   if(modaProd)setModaPreview(modaProd);if(modaLastUrl)showModaResult(modaLastUrl);}
 function setModaPreview(url){const ph=document.getElementById('modaPh');if(ph)ph.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:contain;background:#fff">`;}
@@ -334,7 +354,7 @@ function modaUpload(input){const f=input.files&&input.files[0];if(!f)return;cons
 function showModaResult(url){const out=document.getElementById('modaOut');if(!out)return;out.innerHTML=`<div class="insp-result"><img src="${url}"><div class="insp-actions">${ibtns(url,'moda-provador.jpg','genModa()')}</div></div>`;}
 async function genModa(){const out=document.getElementById('modaOut');
   if(!modaProd){if(out)out.innerHTML='<div class="err">Suba a foto da peça.</div>';return;}
-  if(!KEYS.fashn){if(out)out.innerHTML='<div class="err">Configure a chave do Motor de Moda em Chaves & Config em Chaves & Config.</div>';return;}
+  if(!KEYS.fashn){if(out)out.innerHTML='<div class="err">Motor de Moda indisponível no momento.</div>';return;}
   if(!needCred(20,'Moda · Provador'))return;
   out.innerHTML=`<div class="insp-load"><div class="spin"></div> vestindo na modelo… (pode levar até ~1 min)</div>`;
   try{const mp=(document.getElementById('modaModel').value||'').trim();const asp=document.getElementById('modaAsp').value||'3:4';
@@ -342,7 +362,7 @@ async function genModa(){const out=document.getElementById('modaOut');
     const url=await fashnProductToModel(modaProd,prompt,asp,Math.floor(Math.random()*4000000000));modaLastUrl=url;showModaResult(url);
   }catch(err){out.innerHTML=`<div class="err">Não consegui gerar: ${(err&&err.message)||err}</div>`;}}
 function goStation(st,el){document.querySelectorAll('.side .si').forEach(x=>x.classList.remove('on'));if(el)el.classList.add('on');const station=document.getElementById('station');
-  if(st==='chaves'){if(station)station.classList.remove('on');showGate();return;}
+  if(st==='chaves'){if(station)station.classList.remove('on');renderUpload();return;}
   if(st==='rapida'){if(!KEYS.kie&&!KEYS.laozhang&&!KEYS.fal){showGate();return;}renderRapida();return;}
   if(st==='estudio'){if(station)station.classList.remove('on');enterCanvasMode('estudio');return;}
   if(st==='acessorios'){if(station)station.classList.remove('on');enterCanvasMode('acessorios');return;}
@@ -362,9 +382,9 @@ function enterCanvasMode(m){if(MODE!==m){MODE=m;S=WS[m];}pop.style.display='none
   center.innerHTML=`<div class="card-c"><h3>${titles[m]||titles.estudio}</h3><p>${subs[m]||subs.estudio}</p><button class="btn acc" onclick="newGen()">${cta[m]||cta.estudio} →</button></div>`;}
 /* persistence */
 let saveT;function saveSoon(){clearTimeout(saveT);saveT=setTimeout(save,700);}
-function save(){try{localStorage.setItem(LSK,JSON.stringify({WS,MODE,ic,vc,pc,fc,credits,theme,imgEngineMode}));localStorage.setItem(KSK,JSON.stringify(KEYS));}catch(_){}}
+function save(){try{localStorage.setItem(LSK,JSON.stringify({WS,MODE,ic,vc,pc,fc,credits,theme,imgEngineMode}));}catch(_){}}
 function load(){
-  const def={anthropic:"",fal:"",kie:"",google:"",laozhang:"",lzSora:"",lzImg:"",lzNano:"",proxy:"",vidbk:"",imgbk:"",ugcbk:"",fashn:""};
+  const def={anthropic:"",fal:"",kie:"",google:"",laozhang:"",lzSora:"",lzImg:"",lzNano:"",proxy:"http://localhost:8787",vidbk:"",imgbk:"",ugcbk:"",fashn:""};
   let keys=null;try{const k=JSON.parse(localStorage.getItem(KSK));if(k&&typeof k==='object')keys=k;}catch(_){}
   if(!keys){try{const old=JSON.parse(localStorage.getItem('clipseller_v19'));if(old&&old.KEYS&&typeof old.KEYS==='object'){keys=old.KEYS;}}catch(_){}}
   try{const d=JSON.parse(localStorage.getItem(LSK));if(d){
@@ -375,7 +395,7 @@ function load(){
   ic=d.ic||0;vc=d.vc||0;pc=d.pc||0;fc=d.fc||0;KEYS=Object.assign(def,keys||d.KEYS||{});credits=(typeof d.credits==='number')?d.credits:500;theme=d.theme||'light';imgEngineMode=(d.imgEngineMode==='fal')?'fal':'lz';if(keys)save();return true;}}catch(_){}
   KEYS=Object.assign(def,keys||{});if(keys){try{save();}catch(_){}}return false;}
 function csProxy(u){if(!u||typeof u!=='string')return u;if(u.charAt(0)==='/')return u;const m=[['https://kieai.redpandaai.co/api','/cs-proxy/kieupload'],['https://api.kie.ai','/cs-proxy/kie'],['https://api.laozhang.ai','/cs-proxy/laozhang'],['https://queue.fal.run','/cs-proxy/falqueue'],['https://fal.run','/cs-proxy/fal'],['https://api.fashn.ai','/cs-proxy/fashn'],['https://generativelanguage.googleapis.com','/cs-proxy/google'],['https://api.anthropic.com','/cs-proxy/anthropic']];for(let i=0;i<m.length;i++){if(u.indexOf(m[i][0])===0)return m[i][1]+u.slice(m[i][0].length);}return u;}
-function px(u){return KEYS.proxy?(KEYS.proxy.replace(/\/+$/,'')+'/?url='+encodeURIComponent(u)):csProxy(u);}
+function px(u){return csProxy(u);}
 function applyTheme(){document.body.classList.toggle('dark',theme==='dark');const b=document.getElementById('themeBtn');if(b)b.textContent=(theme==='dark'?'☀ Claro':'◐ Escuro');}
 function toggleTheme(){theme=(theme==='dark'?'light':'dark');applyTheme();save();}
 function wipe(){if(!confirm('Limpar TODO o canvas dos 3 estúdios (produtos, fotos e vídeos gerados)? Suas chaves de API continuam salvas. Não dá pra desfazer.'))return;try{localStorage.removeItem(LSK);}catch(_){}WS={estudio:{products:[],images:[],videos:[],links:[],finals:[]},moda:{products:[],images:[],videos:[],links:[],finals:[]},acessorios:{products:[],images:[],videos:[],links:[],finals:[]}};MODE='estudio';S=WS.estudio;ic=vc=pc=fc=0;photos=[];curName="";location.reload();}
@@ -451,11 +471,11 @@ function pickNiche(n){curNiche=n;curSub='';
 function chip(on,label,onclick){return `<span onclick="${onclick}" style="display:inline-block;padding:7px 13px;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid ${on?'var(--orange)':'var(--line)'};color:${on?'#fff':'var(--mut)'};background:${on?'var(--orange)':'transparent'}">${label}</span>`;}
 function renderOptions(){center.innerHTML=`<div class="card-c"><h3>Como gerar as fotos?</h3><p>Ajuste o objetivo, quantidade, formato e qualidade. Tudo consome créditos.</p>
   <div class="field"><label>Objetivo</label><div style="display:flex;gap:8px;flex-wrap:wrap">${chip(curGoal==='Marketplace','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M2 3h3l2.4 12h10l2-8H6"/></svg> Marketplace',"setOpt('goal','Marketplace')")}${chip(curGoal==='Redes Sociais','<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M11 18h2"/></svg> Redes Sociais',"setOpt('goal','Redes Sociais')")}${chip(curGoal==='Ambos'||!curGoal,'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg> Ambos',"setOpt('goal','Ambos')")}</div></div>
-  <div class="field"><label>Quantas imagens</label><div style="display:flex;gap:8px">${chip(curCount===3,'3 fotos',"setOpt('count',3)")}${chip(curCount===5,'5 fotos',"setOpt('count',5)")}</div></div>
+  <div class="field"><label>Quantas imagens</label><div style="display:flex;gap:8px">${chip(curCount===3,'3 fotos · '+(3*CRED.imgPremium)+' créditos',"setOpt('count',3)")}${chip(curCount===5,'5 fotos · '+(5*CRED.imgPremium)+' créditos',"setOpt('count',5)")}</div></div>
   <div class="field"><label>Formato</label><div style="display:flex;gap:8px;flex-wrap:wrap">${['1:1','4:5','9:16','16:9'].map(a=>chip(curAspect===a,a,`setOpt('asp','${a}')`)).join('')}</div>
     <div style="font-size:11px;color:var(--mut2);margin-top:7px;line-height:1.55"><b style="color:var(--mut)">1:1</b> Shopee, Mercado Livre, Amazon (capa de produto) · <b style="color:var(--mut)">4:5</b> feed do Instagram/Facebook · <b style="color:var(--mut)">9:16</b> Reels, Stories, TikTok, Shopee Vídeo · <b style="color:var(--mut)">16:9</b> YouTube, banner horizontal, site</div></div>
   <div class="field" style="display:none"><label>Qualidade</label><div>${chip(true,'Premium',"setOpt('tier','premium')")}</div></div>
-  <div class="rowbtns" style="margin-top:8px"><button class="btn sec" onclick="renderNiche()">← Voltar</button><button class="btn acc" onclick="startGen()">Gerar →</button></div></div>`;}
+  <div class="rowbtns" style="margin-top:8px"><button class="btn sec" onclick="renderNiche()">← Voltar</button><button class="btn acc" onclick="startGen()">Gerar · ${(curCount||5)*CRED.imgPremium} créditos →</button></div></div>`;}
 function setOpt(k,v){if(k==='goal')curGoal=v;if(k==='count')curCount=v;if(k==='asp')curAspect=v;if(k==='tier')curImgTier=v;renderOptions();}
 function startGen(){if(!curGoal)curGoal='Ambos';if(!KEYS.anthropic||!KEYS.fal){showGate();return;}center.style.cssText=addMode?`position:fixed;inset:52px 0 0 0;z-index:40;background:transparent;display:grid`:'';center.innerHTML=`<div style="display:flex;gap:13px;align-items:center;color:var(--mut)"><div class="spin"></div> diretor lendo o produto…</div>`;runAgent();}
 
@@ -480,12 +500,12 @@ function pickModaJoia(v){curModaJoia=v;renderModaOptions();}
 function renderModaOptions(){center.innerHTML=`<div class="card-c"><h3>Como gerar os looks?</h3><p>Modelo, quantidade e formato. Tudo consome créditos.</p>
   <div class="field"><label>Gênero da modelo</label><div style="display:flex;gap:8px;flex-wrap:wrap">${chip(curModaGender==='auto'||!curModaGender,'Automático',"setModaOpt('g','auto')")}${chip(curModaGender==='feminino','Feminino',"setModaOpt('g','feminino')")}${chip(curModaGender==='masculino','Masculino',"setModaOpt('g','masculino')")}</div></div>
   <div class="field"><label>Perfil da modelo <small style="color:var(--mut2);font-weight:400">(opcional)</small></label><input id="modaModelInp" placeholder="ex: brasileira, 25-30 anos, cabelo cacheado" value="${(curModaModel||'').replace(/"/g,'&quot;')}"></div>
-  <div class="field"><label>Quantos looks</label><div style="display:flex;gap:8px">${chip(curModaPack===3,'3 looks · '+(3*CRED.modaLook)+'cr',"setModaOpt('pack',3)")}${chip(curModaPack===5,'5 looks · '+(5*CRED.modaLook)+'cr',"setModaOpt('pack',5)")}</div></div>
+  <div class="field"><label>Quantos looks</label><div style="display:flex;gap:8px">${chip(curModaPack===3,'3 looks · '+(3*CRED.modaLook)+' créditos',"setModaOpt('pack',3)")}${chip(curModaPack===5,'5 looks · '+(5*CRED.modaLook)+' créditos',"setModaOpt('pack',5)")}</div></div>
   <div class="field"><label>Formato</label><div style="display:flex;gap:8px;flex-wrap:wrap">${['3:4','1:1','9:16'].map(a=>chip(curModaAspect===a,a,`setModaOpt('asp','${a}')`)).join('')}</div>
     <div style="font-size:11px;color:var(--mut2);margin-top:7px;line-height:1.55"><b style="color:var(--mut)">3:4</b> retrato e-commerce (recomendado) · <b style="color:var(--mut)">1:1</b> Shopee · <b style="color:var(--mut)">9:16</b> Stories/Reels</div></div>
-  <div class="rowbtns" style="margin-top:8px"><button class="btn sec" onclick="${curModaNiche==='joia'?'renderModaJoia()':'renderModaNiche()'}">← Voltar</button><button class="btn acc" onclick="startGenModa()">Gerar →</button></div></div>`;}
+  <div class="rowbtns" style="margin-top:8px"><button class="btn sec" onclick="${curModaNiche==='joia'?'renderModaJoia()':'renderModaNiche()'}">← Voltar</button><button class="btn acc" onclick="startGenModa()">Gerar · ${(curModaPack||5)*CRED.modaLook} créditos →</button></div></div>`;}
 function setModaOpt(k,v){const mi=document.getElementById('modaModelInp');if(mi)curModaModel=mi.value;if(k==='g')curModaGender=v;if(k==='pack')curModaPack=v;if(k==='asp')curModaAspect=v;renderModaOptions();}
-function startGenModa(){const mi=document.getElementById('modaModelInp');if(mi)curModaModel=mi.value.trim();if(!KEYS.fashn){alert('Configure a chave do Motor de Moda em Chaves & Config em Chaves & Config.');goStation('chaves',null);return;}center.style.cssText=addMode?`position:fixed;inset:52px 0 0 0;z-index:40;background:transparent;display:grid`:'';center.innerHTML=`<div style="display:flex;gap:13px;align-items:center;color:var(--mut)"><div class="spin"></div> diretor de moda preparando os looks…</div>`;runModa();}
+function startGenModa(){const mi=document.getElementById('modaModelInp');if(mi)curModaModel=mi.value.trim();if(!KEYS.fashn){alert('Motor de Moda indisponível no momento.');return;}center.style.cssText=addMode?`position:fixed;inset:52px 0 0 0;z-index:40;background:transparent;display:grid`:'';center.innerHTML=`<div style="display:flex;gap:13px;align-items:center;color:var(--mut)"><div class="spin"></div> diretor de moda preparando os looks…</div>`;runModa();}
 async function analyzeProd(){const fb={produto:curName,cor:''};try{if(!KEYS.anthropic||!photos.length)return fb;
   const content=photos.map(p=>({type:"image",source:{type:"base64",media_type:p.mime,data:p.b64}}));
   content.push({type:"text",text:`Olhe a(s) foto(s) do produto (herói: "${curName}"). Responda SÓ JSON, sem texto fora: {"produto":"short English name of the product","cor":"the exact main color(s) in English"}`});
@@ -542,10 +562,10 @@ function pickAcessSub(v){curAcessSub=v;renderAcessOptions();}
 function renderAcessOptions(){center.innerHTML=`<div class="card-c"><h3>Como gerar?</h3><p>Objetivo, quantidade e formato. Tudo consome créditos.</p>
   <div class="field"><label>Objetivo</label><div style="display:flex;gap:8px;flex-wrap:wrap">${chip(curAcessObj==='marketplace','Marketplace',"setAcessOpt('obj','marketplace')")}${chip(curAcessObj==='redes','Redes Sociais',"setAcessOpt('obj','redes')")}${chip(curAcessObj==='ambos','Ambos',"setAcessOpt('obj','ambos')")}</div>
     <div style="font-size:11px;color:var(--mut2);margin-top:7px;line-height:1.55"><b style="color:var(--mut)">Marketplace</b> foto limpa de listagem (branco, macro, ângulos) · <b style="color:var(--mut)">Redes</b> lifestyle aspiracional · <b style="color:var(--mut)">Ambos</b> mistura os dois</div></div>
-  <div class="field"><label>Quantas fotos</label><div style="display:flex;gap:8px">${chip(curAcessPack===3,'3 fotos · '+(3*CRED.imgPremium)+'cr',"setAcessOpt('pack',3)")}${chip(curAcessPack===5,'5 fotos · '+(5*CRED.imgPremium)+'cr',"setAcessOpt('pack',5)")}</div></div>
+  <div class="field"><label>Quantas fotos</label><div style="display:flex;gap:8px">${chip(curAcessPack===3,'3 fotos · '+(3*CRED.imgPremium)+' créditos',"setAcessOpt('pack',3)")}${chip(curAcessPack===5,'5 fotos · '+(5*CRED.imgPremium)+' créditos',"setAcessOpt('pack',5)")}</div></div>
   <div class="field"><label>Formato</label><div style="display:flex;gap:8px;flex-wrap:wrap">${['1:1','4:5','3:4','9:16'].map(a=>chip(curAcessAspect===a,a,`setAcessOpt('asp','${a}')`)).join('')}</div>
     <div style="font-size:11px;color:var(--mut2);margin-top:7px;line-height:1.55"><b style="color:var(--mut)">1:1</b> capa Shopee · <b style="color:var(--mut)">4:5</b> feed · <b style="color:var(--mut)">3:4</b> retrato · <b style="color:var(--mut)">9:16</b> Stories/Reels</div></div>
-  <div class="rowbtns" style="margin-top:8px"><button class="btn sec" onclick="renderAcessNiche()">← Voltar</button><button class="btn acc" onclick="startGenAcess()">Gerar →</button></div></div>`;}
+  <div class="rowbtns" style="margin-top:8px"><button class="btn sec" onclick="renderAcessNiche()">← Voltar</button><button class="btn acc" onclick="startGenAcess()">Gerar · ${(curAcessPack||5)*CRED.imgPremium} créditos →</button></div></div>`;}
 function setAcessOpt(k,v){if(k==='pack')curAcessPack=v;if(k==='asp')curAcessAspect=v;if(k==='obj')curAcessObj=v;renderAcessOptions();}
 function startGenAcess(){if(!KEYS.anthropic||!KEYS.fal){showGate();return;}center.style.cssText=addMode?`position:fixed;inset:52px 0 0 0;z-index:40;background:transparent;display:grid`:'';center.innerHTML=`<div style="display:flex;gap:13px;align-items:center;color:var(--mut)"><div class="spin"></div> preparando as fotos do acessório…</div>`;runAcess();}
 function acessScenes(prod){
@@ -626,7 +646,7 @@ ${recipe}
 Formatos: Unboxing, Street Style, Get Ready With Me, No Carro, Provador, Detalhe, Demonstração, Review.
 SOMENTE JSON: {"produto":{"nome":"${curName}","categoria":"","cor":"","material":"","publico":""},"racional":"1 frase pt-BR","cenas":[{"etapa":"","titulo":"","aspect":"1:1|3:4","onmodel":false,"prompt":"","videos":[{"format":"","prompt":"","fala":""}]}]}`;
   try{const content=photos.map(p=>({type:"image",source:{type:"base64",media_type:p.mime,data:p.b64}}));content.push({type:"text",text:`Produto: ${curName}. Objetivo: ${curGoal}. Só JSON.`});
-    const resp=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
+    const resp=await fetch(px("https://api.anthropic.com/v1/messages"),{method:"POST",
       headers:{"Content-Type":"application/json","x-api-key":KEYS.anthropic,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
       body:JSON.stringify({model:ANTHROPIC_MODEL,max_tokens:3800,system,messages:[{role:"user",content}]})});
     const data=await resp.json();if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
@@ -760,22 +780,23 @@ function openNode(id,e){if(e)e.stopPropagation();const o=findNode(id);if(o.id[0]
     <div class="opt" onclick="askDelete('${id}')"><span class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></span>Excluir vídeo</div>`);}}
 let curVidDur='5';
 function durCss(on){return `display:inline-block;padding:6px 13px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid ${on?'var(--orange)':'var(--line)'};color:${on?'#fff':'var(--mut)'};background:${on?'var(--orange)':'transparent'}`;}
-function setDur(d,el){curVidDur=d;[...el.parentNode.querySelectorAll('.durc')].forEach(x=>x.style.cssText=durCss(x.dataset.d===d));}
+function setDur(d,el){curVidDur=d;[...el.parentNode.querySelectorAll('.durc')].forEach(x=>x.style.cssText=durCss(x.dataset.d===d));renderVidCosts();}
+function renderVidCosts(){[...document.querySelectorAll('[data-vidcost]')].forEach(el=>{const ugc=el.dataset.vidcost==='ugc';el.textContent=vidCost(curVidDur,ugc)+' créditos';});}
 function setVidTier(t,el){curVidTier=t;[...el.parentNode.querySelectorAll('.tierc')].forEach(x=>x.style.cssText=durCss(x.dataset.t===t));}
 function setUgcPersona(p,el){ugcPersona=p;[...el.parentNode.querySelectorAll('.perc')].forEach(x=>x.style.cssText=durCss(x.dataset.p===p)+';margin:0 5px 5px 0;display:inline-block');}
 function menuFormats(id){const im=S.images.find(x=>x.id===id);
   const gl=(t)=>`<div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.55;margin:11px 4px 5px;font-weight:700">${t}</div>`;
   let h=`<span class="back" onclick="openNode('${id}')">← voltar</span><h4>Gerar vídeo</h4>
-  <div style="display:flex;gap:7px;margin:0 4px 4px"><span class="durc" data-d="5" style="${durCss(curVidDur==='5')}" onclick="setDur('5',this)">5s</span><span class="durc" data-d="10" style="${durCss(curVidDur==='10')}" onclick="setDur('10',this)">10s</span></div>`;
-  if(im&&im.moda){h+=gl('Vídeo de moda · '+vidCost(curVidDur,false)+'cr');MODA_FMTS.forEach((f,i)=>h+=`<div class="opt vid" onclick="genVideo('${id}',${i},'moda')"><span class="pic">${IC.video}</span>${f.format}</div>`);
-  h+=gl('UGC · criadora vestindo a peça · '+vidCost(curVidDur,true)+'cr');h+=`<div style="margin:0 4px 7px">`+[['auto','Automático'],['woman','Mulher'],['man','Homem']].map(o=>`<span class="perc" data-p="${o[0]}" style="${durCss(ugcPersona===o[0])};margin:0 5px 5px 0;display:inline-block" onclick="setUgcPersona('${o[0]}',this)">${o[1]}</span>`).join('')+`</div>`;PERSON_FMTS.forEach((f,i)=>h+=`<div class="opt vid" onclick="genVideo('${id}',${i},'ugc')"><span class="pic">${IC.video}</span>${f.format}</div>`);}
-  else{h+=gl('Vídeo do produto · '+vidCost(curVidDur,false)+'cr');PRODUCT_FMTS.forEach((f,i)=>h+=`<div class="opt vid" onclick="genVideo('${id}',${i},'prod')"><span class="pic">${IC.video}</span>${f.format}</div>`);
-  h+=gl('Vídeo UGC · pessoa falando · '+vidCost(curVidDur,true)+'cr');h+=`<div style="margin:0 4px 7px">`+[['auto','Automático'],['woman','Mulher'],['man','Homem'],['child','Criança']].map(o=>`<span class="perc" data-p="${o[0]}" style="${durCss(ugcPersona===o[0])};margin:0 5px 5px 0;display:inline-block" onclick="setUgcPersona('${o[0]}',this)">${o[1]}</span>`).join('')+`</div>`;PERSON_FMTS.forEach((f,i)=>h+=`<div class="opt vid" onclick="genVideo('${id}',${i},'ugc')"><span class="pic">${IC.video}</span>${f.format}</div>`);}
+  <div style="display:flex;gap:7px;margin:0 4px 6px"><span class="durc" data-d="5" style="${durCss(curVidDur==='5')}" onclick="setDur('5',this)">5s</span><span class="durc" data-d="10" style="${durCss(curVidDur==='10')}" onclick="setDur('10',this)">10s</span></div>`;
+  if(im&&im.moda){h+=gl('Vídeo de moda · <span data-vidcost="prod">'+vidCost(curVidDur,false)+' créditos</span>');MODA_FMTS.forEach((f,i)=>h+=`<div class="opt vid" onclick="genVideo('${id}',${i},'moda')"><span class="pic">${IC.video}</span>${f.format}</div>`);
+  h+=gl('UGC · criadora vestindo a peça · <span data-vidcost="ugc">'+vidCost(curVidDur,true)+' créditos</span>');h+=`<div style="margin:0 4px 7px">`+[['auto','Automático'],['woman','Mulher'],['man','Homem']].map(o=>`<span class="perc" data-p="${o[0]}" style="${durCss(ugcPersona===o[0])};margin:0 5px 5px 0;display:inline-block" onclick="setUgcPersona('${o[0]}',this)">${o[1]}</span>`).join('')+`</div>`;PERSON_FMTS.forEach((f,i)=>h+=`<div class="opt vid" onclick="genVideo('${id}',${i},'ugc')"><span class="pic">${IC.video}</span>${f.format}</div>`);}
+  else{h+=gl('Vídeo do produto · <span data-vidcost="prod">'+vidCost(curVidDur,false)+' créditos</span>');PRODUCT_FMTS.forEach((f,i)=>h+=`<div class="opt vid" onclick="genVideo('${id}',${i},'prod')"><span class="pic">${IC.video}</span>${f.format}</div>`);
+  h+=gl('Vídeo UGC · pessoa falando · <span data-vidcost="ugc">'+vidCost(curVidDur,true)+' créditos</span>');h+=`<div style="margin:0 4px 7px">`+[['auto','Automático'],['woman','Mulher'],['man','Homem'],['child','Criança']].map(o=>`<span class="perc" data-p="${o[0]}" style="${durCss(ugcPersona===o[0])};margin:0 5px 5px 0;display:inline-block" onclick="setUgcPersona('${o[0]}',this)">${o[1]}</span>`).join('')+`</div>`;PERSON_FMTS.forEach((f,i)=>h+=`<div class="opt vid" onclick="genVideo('${id}',${i},'ugc')"><span class="pic">${IC.video}</span>${f.format}</div>`);}
   showPop(id,h);}
 function menuEdit(id){showPop(id,`<span class="back" onclick="openNode('${id}')">← voltar</span><h4>Editar imagem</h4><div class="edit"><input id="editTxt" placeholder="ex: fundo mais claro, sem reflexo"><button onclick="doEdit('${id}')">→</button></div>`);}
 function menuVar(id){const im=S.images.find(x=>x.id===id);if(im&&!curImgTier)curImgTier=im.tier||'premium';
   showPop(id,`<span class="back" onclick="openNode('${id}')">← voltar</span><h4>Nova variação · qualidade</h4>
-  <div style="display:flex;gap:7px;margin:0 4px 11px"><span class="tierc" data-t="premium" style="${durCss(curImgTier==='premium')}" onclick="curImgTier='premium';menuVar('${id}')">✦ Premium ${CRED.imgPremium}cr</span><span class="tierc" data-t="basico" style="${durCss(curImgTier==='basico')}" onclick="curImgTier='basico';menuVar('${id}')">Básico ${CRED.imgBasico}cr</span></div>
+  <div style="display:flex;gap:7px;margin:0 4px 11px"><span class="tierc" data-t="premium" style="${durCss(curImgTier==='premium')}" onclick="curImgTier='premium';menuVar('${id}')">✦ Premium ${CRED.imgPremium} créditos</span><span class="tierc" data-t="basico" style="${durCss(curImgTier==='basico')}" onclick="curImgTier='basico';menuVar('${id}')">Básico ${CRED.imgBasico} créditos</span></div>
   <div class="opt vid" onclick="genVar('${id}');pop.style.display='none'"><span class="pic">${IC.refresh}</span>Gerar variação diferente</div>`);}
 function doEdit(id){const t=document.getElementById('editTxt').value.trim();if(!t)return;const src=S.images.find(x=>x.id===id);pop.style.display='none';const sp=childSpot(id,230,Math.round(230*aspRatio(src.aspect))+44+84);
   const nv={id:'i'+(ic++),parent:id,x:sp.x,y:sp.y,title:'Editada',etapa:src.etapa,aspect:src.aspect,tier:src.tier,onmodel:src.onmodel,
@@ -785,7 +806,7 @@ document.addEventListener('mousedown',e=>{if(!e.target.closest('.pop')&&!e.targe
 function lightbox(id,e){e.stopPropagation();const o=findNode(id);if(!o||!o.url)return;lb.innerHTML=o.format?`<video src="${o.url}" controls autoplay loop></video>`:`<img src="${o.url}">`;lb.classList.add('on');}
 async function anthropicMsg(body,tries){tries=tries||4;let last='';
   for(let i=0;i<tries;i++){
-    try{const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':KEYS.anthropic,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+    try{const r=await fetch(px('https://api.anthropic.com/v1/messages'),{method:'POST',headers:{'Content-Type':'application/json','x-api-key':KEYS.anthropic,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
       if(r.status===529||r.status===429||r.status===503){last='servidor ocupado ('+r.status+')';await new Promise(s=>setTimeout(s,1500*(i+1)));continue;}
       const d=await r.json();
       if(d&&d.error){const msg=(d.error.message||d.error)+'';if(/overload|rate|busy|529|too many/i.test(msg)){last=msg;await new Promise(s=>setTimeout(s,1500*(i+1)));continue;}throw new Error(msg);}
@@ -800,8 +821,8 @@ function pById(id){return id===TIT_SOLO_ID?titSolo:S.products.find(x=>x.id===id)
 let qkB64='',qkBusy=false;
 const QK_DEFS={foto:{t:'1 Foto Pro',d:'Foto premium de estúdio do seu produto',c:CRED.imgPremium,ic:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 15-5-5L5 21"/>'},
  look:{t:'1 Look de Moda',d:'Sua peça vestida em modelo profissional',c:CRED.modaLook,ic:'<path d="M12 3a2 2 0 0 1 2 2c0 1.2-1 1.8-2 2.3l7 3.7v9H5v-9l7-3.7"/>'},
- vid:{t:'1 Vídeo de Produto · 5s',d:'Cena cinematográfica do produto',c:CRED.vidProd5,ic:'<rect x="2" y="5" width="14" height="14" rx="2"/><path d="m16 11 6-4v10l-6-4z"/>'},
- ugc:{t:'1 Vídeo UGC · 5s',d:'Criador(a) falando do seu produto',c:CRED.ugc5,ic:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'}};
+ vid:{t:'1 Vídeo de Produto · 5s',d:'Cena cinematográfica do produto',c:CRED.vidProd5Fast,ic:'<rect x="2" y="5" width="14" height="14" rx="2"/><path d="m16 11 6-4v10l-6-4z"/>'},
+ ugc:{t:'1 Vídeo UGC · 5s',d:'Criador(a) falando do seu produto',c:CRED.ugc5Fast,ic:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'}};
 function renderRapida(){const st=document.getElementById('station');if(!st)return;st.classList.add('on');qkB64='';
   const card='border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--paper);cursor:pointer;display:flex;flex-direction:column;gap:7px;align-items:flex-start';
   st.innerHTML=`<div class="insp">
@@ -849,18 +870,18 @@ async function qkGo(kind){if(qkBusy)return;if(!qkB64)return alert('Sobe a foto d
     if(kind==='foto'){if(!needCred(CRED.imgPremium,'foto única'))return;qkBusy=true;qkMsg('Gerando sua Foto Pro… (até 2 min)','var(--orange)');
       const r=await imgEngine({prompt:'Professional premium e-commerce hero photo of '+nm+' shown in the reference image. Keep the product 100% identical: same shape, colors, label, materials and details. Elegant studio lighting, clean seamless light background, soft realistic shadow, advertising quality, high resolution. No people, no text.',image_urls:[qkB64],num_images:1,aspect_ratio:'1:1',output_format:'jpeg',resolution:'2K'});
       const u=r&&r.images&&r.images[0]&&r.images[0].url;if(!u)throw new Error('sem imagem');qkShow(u,false,'foto-pro.jpg');qkMsg('Foto Pro pronta.');}
-    else if(kind==='look'){if(!KEYS.fashn)return alert('Configure a chave do Motor de Moda em Chaves & Config.');if(!needCred(CRED.modaLook,'look único'))return;qkBusy=true;qkMsg('Vestindo seu produto na modelo… (até 2 min)','var(--orange)');
+    else if(kind==='look'){if(!KEYS.fashn)return alert('Motor de Moda indisponível no momento.');if(!needCred(CRED.modaLook,'look único'))return;qkBusy=true;qkMsg('Vestindo seu produto na modelo… (até 2 min)','var(--orange)');
       const g=pp==='homem'?'masculino':pp==='mulher'?'feminino':'';
       const u=await fashnProductToModel(qkB64,fashnSlotPromptFrom({modaName:nm,modaColor:'',modaGender:g,modaNiche:nc},0),'3:4',Math.floor(Math.random()*4000000000));
       if(!u)throw new Error('sem look');qkShow(u,false,'look-moda.jpg');qkMsg('Look pronto.');}
-    else if(kind==='vid'){if(!needCred(CRED.vidProd5,'vídeo único'))return;qkBusy=true;qkMsg('Gerando seu vídeo… (2 a 5 min, pode deixar aberto)','var(--orange)');
+    else if(kind==='vid'){if(!needCred(CRED.vidProd5Fast,'vídeo único'))return;qkBusy=true;qkMsg('Gerando seu vídeo… (~1 a 2 min)','var(--orange)');
       const prompt=FIDELITY_PROD+'The hero product is '+nm+'. Keep the framing and focus on '+nm+' the whole time. '+PRODUCT_FMTS[0].prompt;let out;
       out=await vidGen({prompt,image:qkB64,duration:'5',ratio:'9:16',audio:false,model:LZ_SEEDANCE});
       const u=out&&out.video&&out.video.url;if(!u)throw new Error('sem vídeo');qkShow(u,true,'video-produto.mp4');qkMsg('Vídeo pronto.');}
-    else if(kind==='ugc'){if(!needCred(CRED.ugc5,'UGC único'))return;qkBusy=true;qkMsg('Gerando seu UGC… (2 a 5 min, pode deixar aberto)','var(--orange)');
+    else if(kind==='ugc'){if(!needCred(CRED.ugc5Fast,'UGC único'))return;qkBusy=true;qkMsg('Gerando seu UGC… (~1 a 2 min)','var(--orange)');
       const d=await describeForUGC(qkB64,persona,'5');const per=(d&&d.persona)||(persona!=='auto'?persona:'woman');const fala=(d&&d.fala)?d.fala:'';
       const speak=fala?(' The creator speaks this line in Brazilian Portuguese at a natural, unhurried conversational pace, starting to talk right away and finishing comfortably before the clip ends, with lip movement accurately synced to each word: "'+fala+'". The mouth moves naturally and matches the words — no silent staring, no rushing, no repeating.'):' The creator looks at the camera and says one natural sentence in Brazilian Portuguese about the product, unhurried, lip movement synced.';
-      const t2v='A real, candid Brazilian '+per+' content creator films a casual phone-style UGC video, holding and naturally using the product shown in the reference image (keep the product faithful: same shape, color, label and details).'+((d&&d.look)?(' Styling and setting: '+d.look+'.'):'')+' '+FIDELITY+'The hero product is '+nm+'. '+PERSON_FMTS[0].prompt+speak+PERSON_REALISM;let out;
+      const t2v=buildUGCPrompt(d,nm,PERSON_FMTS[0].prompt,speak);let out;
       out=await vidGen({prompt:t2v,images:[qkB64],role:'reference_image',duration:'5',ratio:'9:16',audio:true,model:LZ_SEEDANCE});
       const u=out&&out.video&&out.video.url;if(!u)throw new Error('sem vídeo');qkShow(u,true,'video-ugc.mp4');qkMsg('UGC pronto.');}
   }catch(err){console.warn('geração rápida falhou:',(err&&err.message)||err);qkMsg('Não consegui gerar agora — tente novamente.','#c2410c');}
@@ -869,7 +890,7 @@ function renderTitleSolo(){const st=document.getElementById('station');if(!st)re
   const ist='width:100%;border:1px solid var(--line);border-radius:9px;padding:11px;font-family:inherit;font-size:13px;background:var(--paper);color:var(--ink);box-sizing:border-box';
   const lbl='font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:700;margin-bottom:5px';
   st.innerHTML=`<div class="insp">
-    <div class="insp-head"><h2>Gerador de Título &amp; SEO</h2><p>Gere título, descrição e 2 variações otimizados pra Shopee, com pesquisa de palavras-chave de alto volume. A foto é opcional (ajuda a IA a entender o produto). Consome ${CRED.titulo} créditos.</p></div>
+    <div class="insp-head"><h2>Gerador de Título &amp; SEO</h2><p>Gere título, descrição e 2 variações otimizados pra Shopee, com pesquisa de palavras-chave de alto volume. A foto é opcional (ajuda a IA a entender o produto). Consome ${CRED.titulo} créditoséditos.</p></div>
     <div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap">
       <div style="flex:0 0 140px;width:140px"><label class="insp-tile"><input type="file" accept="image/*" onchange="titSoloUpload(this)"><div class="insp-ph" id="titSoloPh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 15-5-5L5 21"/></svg><span>foto do produto</span><small>opcional</small></div></label></div>
       <div style="flex:1;min-width:240px">
@@ -878,7 +899,7 @@ function renderTitleSolo(){const st=document.getElementById('station');if(!st)re
         <div style="${lbl};margin-top:14px">Diferenciais (2 a 4)</div>
         <div id="tsDiffs" style="display:flex;flex-direction:column;gap:8px">${['','',''].map(()=>`<input class="tsDiff" placeholder="ex.: cerâmica · design canelado · para vela de LED" style="${ist}">`).join('')}</div>
         <div><span class="clr" onclick="addDiffSolo()">+ adicionar diferencial</span></div>
-        <div style="margin-top:16px"><button class="tgen" style="width:auto;padding:12px 24px" onclick="doGenTitleSolo()">Gerar título &amp; SEO · ${CRED.titulo} cr</button></div>
+        <div style="margin-top:16px"><button class="tgen" style="width:auto;padding:12px 24px" onclick="doGenTitleSolo()">Gerar título &amp; SEO · ${CRED.titulo} créditos</button></div>
       </div>
     </div></div>`;}
 function titSoloUpload(input){const f=input.files&&input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{titSoloImg=r.result;const ph=document.getElementById('titSoloPh');if(ph)ph.innerHTML='<img src="'+r.result+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px">';};r.readAsDataURL(f);}
@@ -893,7 +914,7 @@ function renderTitleForm(p){const tc=document.getElementById('titcard');const es
   h+=`<div class="k" style="margin-bottom:5px">Nome do produto</div><input id="tName" value="${esc(p.name)}">`;
   h+=`<div class="k" style="margin:12px 0 5px">Diferenciais (2 a 4)</div><div id="tDiffs">${diff.map(d=>`<input class="tDiff" placeholder="ex.: couro legítimo · alça ajustável · impermeável" value="${esc(d)}">`).join('')}</div>`;
   h+=`<span class="clr" style="margin:2px 0 16px;display:inline-block" onclick="addDiff()">+ adicionar diferencial</span>`;
-  h+=`<button class="tgen" onclick="doGenTitle('${p.id}')">Gerar título &amp; SEO · ${CRED.titulo} cr</button>`;
+  h+=`<button class="tgen" onclick="doGenTitle('${p.id}')">Gerar título &amp; SEO · ${CRED.titulo} créditos</button>`;
   tc.innerHTML=h;}
 function addDiff(){const c=document.getElementById('tDiffs');if(!c)return;const i=document.createElement('input');i.className='tDiff';i.placeholder='ex.: ...';c.appendChild(i);i.focus();}
 function doGenTitle(pid){const nm=document.getElementById('tName');const name=(nm&&nm.value.trim())||'';const diffs=[...document.querySelectorAll('.tDiff')].map(i=>i.value.trim()).filter(Boolean);if(!name){nm&&nm.focus();return;}genTitle(pid,name,diffs);}
@@ -948,9 +969,9 @@ function copyTit(i,btn){const txt=_titClips[i]||'';const ok=()=>{const o=btn.tex
   else{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(_){}ta.remove();ok();}}
 function closeTit(){document.getElementById('titwrap').classList.remove('on');}
 
-async function falRun(model,input){if(!KEYS.fal){showGate();throw new Error('Conecte a chave fal.ai');}
+async function falRun(model,input){if(!KEYS.fal)throw new Error('Motor fal.ai indisponível');
   let j=null,last='';
-  for(let a=0;a<4;a++){let sub;try{sub=await fetch(px('https://queue.fal.run/'+model),{method:'POST',headers:{Authorization:'Key '+KEYS.fal,'Content-Type':'application/json'},body:JSON.stringify(input)});}catch(net){last='fal sem resposta: '+((net&&net.message)||net);await new Promise(r=>setTimeout(r,2000*(a+1)));continue;}
+  for(let a=0;a<4;a++){let sub;try{sub=await fetch(px(`https://queue.fal.run/${model}`),{method:'POST',headers:{Authorization:'Key '+KEYS.fal,'Content-Type':'application/json'},body:JSON.stringify(input)});}catch(net){last='fal sem resposta: '+((net&&net.message)||net);await new Promise(r=>setTimeout(r,2000*(a+1)));continue;}
     const txt=await sub.text();try{j=JSON.parse(txt);}catch(_){j=null;}
     if(sub.ok&&j)break;
     last='fal '+sub.status+': '+(((j&&j.detail&&(typeof j.detail==='string'?j.detail:JSON.stringify(j.detail)))||(j&&j.error)||txt.slice(0,160))||'sem corpo');j=null;
@@ -963,16 +984,14 @@ async function falRun(model,input){if(!KEYS.fal){showGate();throw new Error('Con
     if(st.status==='COMPLETED')break;if(st.status==='FAILED'||st.status==='ERROR')throw new Error('fal: geração falhou ('+(st.error||'')+')');}
   const out=await(await fetch(px(j.response_url),{headers:{Authorization:'Key '+KEYS.fal}})).json();
   if(out&&(out.images||out.video))return out;
-  const vUrl=(out&&out.video&&out.video.url)||(out&&out.data&&out.data.video&&out.data.video.url);
-  if(vUrl)return{video:{url:vUrl}};
   throw new Error('fal: resposta sem imagem'+(out&&out.detail?(' — '+(typeof out.detail==='string'?out.detail:JSON.stringify(out.detail))):' (tente de novo)'));}
-/* UMA tentativa por geração de imagem: POST aceito = cobrado. Erro → cascata assume. */
 async function lzPost(path,body,key){const K=key||KEYS.laozhang;let last='';
-  for(let a=0;a<1;a++){let resp;try{resp=await fetch(px(LZ_BASE+path),{method:"POST",headers:{Authorization:"Bearer "+K,"Content-Type":"application/json"},body:JSON.stringify(body)});}
-    catch(net){last='laozhang sem resposta (rede/CORS): '+((net&&net.message)||net);continue;}
+  for(let a=0;a<3;a++){let resp;try{resp=await fetch(px(LZ_BASE+path),{method:"POST",headers:Object.assign(lzAuthHdr(K),{"Content-Type":"application/json"}),body:JSON.stringify(body)});}
+    catch(net){last='laozhang sem resposta (rede/CORS): '+((net&&net.message)||net);await new Promise(r=>setTimeout(r,2000));continue;}
     const txt=await resp.text();let j=null;try{j=JSON.parse(txt);}catch(_){}
     if(resp.ok&&j)return j;
     last='laozhang '+resp.status+': '+(((j&&j.error&&(j.error.message||j.error))||(j&&j.message))||txt.slice(0,160)||'sem corpo');
+    if(resp.status===503||resp.status===502||resp.status===429){await new Promise(r=>setTimeout(r,2500));continue;}
     throw new Error(last);}
   throw new Error(last||'laozhang indisponível (503)');}
 async function lzImage({prompt,image,aspect}){const key=KEYS.lzImg||KEYS.laozhang;const body={model:"gpt-image-2",prompt,size:aspSize(aspect),n:1};if(image)body.image=image;
@@ -984,40 +1003,82 @@ async function lzNanoPro({prompt,image_urls,aspect}){const key=KEYS.lzNano||KEYS
   const j=await lzPost("/images/generations",body,key);const d=j.data&&j.data[0];const url=d&&(d.url||(d.b64_json?("data:image/png;base64,"+d.b64_json):null));
   if(!url)throw new Error((j.error&&(j.error.message||j.error))||j.message||'laozhang Nano Pro: resposta sem URL');return {images:[{url}]};}
 const SEEDANCE_BASE="https://api.laozhang.ai/seedance/api/v3";
+const LZ_COOLDOWN_MS=10*60*1000;
+const LZ_NETWORK_COOLDOWN_MS=3*60*1000;
+let lzCooldownUntil=0,lzCooldownReason='',lzNetworkUntil=0,lzNetworkReason='';
+function lzAuthHdr(key){const h={};if(KEYS.proxy)h.Authorization='Bearer '+key;return h;}
+function lzSkip(){return Date.now()<lzCooldownUntil||Date.now()<lzNetworkUntil;}
+function lzSkipReason(){return Date.now()<lzCooldownUntil?lzCooldownReason:(Date.now()<lzNetworkUntil?lzNetworkReason:'')}
+function lzTrip(reason){lzCooldownUntil=Date.now()+LZ_COOLDOWN_MS;lzCooldownReason=reason||'sem saldo';
+  try{console.warn('Lao em cooldown ('+Math.round(LZ_COOLDOWN_MS/60000)+'min): '+lzCooldownReason);}catch(_){}
+  const human=/额度|quota|用尽|insufficient/i.test(reason||'')?'Laozhang sem crédito — recarregue no painel laozhang.ai ou troque a chave API.':'Laozhang indisponível';
+  try{log(`<div class="msg">⚠ ${human} Usando FAL/Kie por ${Math.round(LZ_COOLDOWN_MS/60000)} min.</div>`,'raw');}catch(_){}}
+function lzNetworkTrip(reason){lzNetworkUntil=Date.now()+LZ_NETWORK_COOLDOWN_MS;lzNetworkReason=reason||'conexão instável';
+  try{console.warn('Lao instável — FAL/Kie direto por '+Math.round(LZ_NETWORK_COOLDOWN_MS/60000)+'min:',lzNetworkReason);}catch(_){}}
+function isLzQuotaError(status,body){
+  const errType=(body&&body.error&&body.error.type)||'';
+  const code=(body&&(body.code||(body.error&&body.error.code)))||'';
+  const msg=((body&&(body.message||(body.error&&(body.error.message||body.error))))||'').toString();
+  const msgL=msg.toLowerCase();
+  if(status===402||status===403)return true;
+  if(status===401&&(/额度|quota|shell_api_error/i.test(msg)||errType==='shell_api_error'))return true;
+  if(typeof code==='string'&&(code==='insufficient_quota'||code==='insufficient_balance'||code==='quota_exceeded'))return true;
+  if(typeof code==='number'&&(code===402||code===403))return true;
+  return /insufficient.?(quota|balance|funds|credit)|exceed(ed)? .*quota|need\s+\d+|saldo|out of (credit|quota)|额度已用尽|额度.*用尽/i.test(msgL+msg);
+}
+async function lzPrepFrame(u){
+  if(!u)return u;
+  if(/^https?:\/\//i.test(u))return u;
+  try{
+    if(/^data:image\//.test(u)){
+      const norm=await inNormalizeImage(u,720,.72);
+      if(norm.length>100000){
+        try{const r=await fetch('/api/media/lz-frame',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({dataUrl:norm})});
+          if(r.ok){const j=await r.json();if(j&&j.url)return j.url;}
+          if(KEYS.kie){try{return await kieUpload(norm);}catch(_){}}}catch(_){if(KEYS.kie){try{return await kieUpload(norm);}catch(_){}}}
+      }
+      return norm;
+    }
+    const blob=await(await fetch(px(u))).blob();
+    if((blob.type||'').startsWith('image/')){
+      const b64=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;fr.readAsDataURL(blob);});
+      return await lzPrepFrame(b64);
+    }
+    return u;
+  }catch(_){return u;}}
 async function lzVideo({prompt,image,images,duration,ratio,audio,model,role}){
+  if(lzSkip())throw Object.assign(new Error('laozhang em cooldown: '+lzSkipReason()),{lzSkipped:true});
   const isSora=(model===LZ_SORA);const key=(isSora&&KEYS.lzSora)?KEYS.lzSora:KEYS.laozhang;
   let createUrl,pollBase,reqInit;
   if(isSora){createUrl=LZ_BASE+"/videos";pollBase=LZ_BASE+"/videos/";
     const fd=new FormData();fd.append('model','sora-2');fd.append('prompt',prompt);fd.append('seconds',((parseInt(duration)||5)<=6?'4':'8'));fd.append('size',ratio==='16:9'?'1280x720':ratio==='1:1'?'720x720':'720x1280');
     if(image){try{const ib=await(await fetch(px(image))).blob();fd.append('input_reference',ib,'ref.png');}catch(_){}}
-    reqInit={method:"POST",headers:{Authorization:"Bearer "+key},body:fd};}
+    reqInit={method:"POST",headers:lzAuthHdr(key),body:fd};}
   else{createUrl=SEEDANCE_BASE+"/contents/generations/tasks";pollBase=SEEDANCE_BASE+"/contents/generations/tasks/";
-    const content=[{type:"text",text:prompt}];const _imgs=(images&&images.length)?images:(image?[image]:[]),uploadedImgs=[];
-    for(const u of _imgs){uploadedImgs.push(/^data:image\//.test(u)?await kieUpload(u):u);}
-    uploadedImgs.forEach(u=>content.push({type:"image_url",image_url:{url:u},role:role||"first_frame"}));
+    const content=[{type:"text",text:prompt}];const _raw=(images&&images.length)?images:(image?[image]:[]);
+    const _imgs=[];for(const u of _raw.filter(Boolean)){_imgs.push(await lzPrepFrame(u));}
+    _imgs.forEach(u=>content.push({type:"image_url",image_url:{url:u},role:role||"first_frame"}));
     const body={model:model||LZ_SEEDANCE,content,ratio:ratio||"9:16",duration:parseInt(duration)||5,resolution:"720p",watermark:false,generate_audio:!!audio};
-    reqInit={method:"POST",headers:{Authorization:"Bearer "+key,"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(body)};}
-  /* UMA tentativa de createTask por clique: cada POST aceito é cobrado no provedor.
-     Retry aqui = risco de cobrança dupla. Falhou → cascata (Kie/fal) assume. */
+    reqInit={method:"POST",headers:Object.assign(lzAuthHdr(key),{"Content-Type":"application/json","Accept":"application/json"}),body:JSON.stringify(body)};}
   let j=null,last='';
   for(let a=0;a<1;a++){let resp;try{resp=await fetch(px(createUrl),reqInit);}catch(net){last='laozhang sem resposta (rede/CORS): '+((net&&net.message)||net);await new Promise(r=>setTimeout(r,2000));continue;}
     const txt=await resp.text();try{j=JSON.parse(txt);}catch(_){j=null;}
     if(resp.ok&&j)break;
-    last='laozhang '+resp.status+': '+(((j&&j.error&&(j.error.message||j.error))||(j&&j.message))||txt.slice(0,180)||'sem corpo');j=null;
-    /* 5xx do gateway pode chegar DEPOIS da tarefa ter sido criada lá dentro —
-       reenviar duplicaria a cobrança. Só retenta 429 (rate limit, certeza de não-criação). */
+    last='laozhang '+resp.status+': '+(((j&&j.error&&(j.error.message||j.error))||(j&&j.message))||txt.slice(0,180)||'sem corpo');
+    if(isLzQuotaError(resp.status,j)){lzTrip(((j&&(j.message||(j.error&&(j.error.message||j.error))))||('HTTP '+resp.status)).toString().slice(0,140));j=null;throw Object.assign(new Error(last),{lzQuota:true});}
+    if(resp.status===503&&(j&&j.transient)){throw Object.assign(new Error('laozhang indisponível (rede)'),{lzTransient:true});}
+    j=null;
     if(resp.status===429){await new Promise(r=>setTimeout(r,2500));continue;}
     throw new Error(last);}
   if(!j)throw new Error(last||'laozhang: criação falhou');
   const id=j.id||j.task_id||(j.data&&j.data.id);if(!id)throw new Error('laozhang: submit sem id — '+(((j.error&&(j.error.message||j.error))||j.message)||'cobrança/acesso ao grupo?'));
-  /* Cada poll tem timeout próprio de 15s: o endpoint de status da laozhang trava
-     intermitentemente e, sem abort, um único poll pendurado segura a UI por minutos. */
-  let nf=0;for(let i=0;i<200;i++){await new Promise(r=>setTimeout(r,3000));let resp,st;try{const ac=new AbortController();const tm=setTimeout(()=>ac.abort(),15000);resp=await fetch(px(pollBase+id),{headers:{Authorization:"Bearer "+key,"Accept":"application/json"},signal:ac.signal});clearTimeout(tm);st=await resp.json();}catch(_){continue;}
-    if(resp&&resp.status===404){if(++nf>6)throw new Error('laozhang: tarefa '+id+' não encontrada (endpoint/grupo?)');continue;}
+  const _markCharged=(e)=>{try{e.lzCharged=true;e.lzTaskId=id;}catch(_){}throw e;};
+  let nf=0;for(let i=0;i<200;i++){await new Promise(r=>setTimeout(r,3000));let resp,st;try{const ac=new AbortController();const tm=setTimeout(()=>ac.abort(),15000);resp=await fetch(px(pollBase+id),{headers:Object.assign(lzAuthHdr(key),{"Accept":"application/json"}),signal:ac.signal});clearTimeout(tm);st=await resp.json();}catch(_){continue;}
+    if(resp&&resp.status===404){if(++nf>6)_markCharged(new Error('laozhang: tarefa '+id+' não encontrada (endpoint/grupo?)'));continue;}
     const s=((st.status||'')+'').toLowerCase();
     if(s==='succeeded'||s==='completed'||s==='success'){const url=(st.content&&st.content.video_url)||st.video_url||st.url||(st.data&&(st.data.video_url||st.data.url));if(url)return{video:{url}};}
-    if(s==='failed'||s==='error'||s==='expired')throw new Error('laozhang: geração '+s+' ('+((st.error&&(st.error.message||st.error))||'')+')');}
-  throw new Error('laozhang: timeout');}
+    if(s==='failed'||s==='error'||s==='expired')_markCharged(new Error('laozhang: geração '+s+' ('+((st.error&&(st.error.message||st.error))||'')+')'));}
+  _markCharged(new Error('laozhang: timeout'));}
 async function genImg(im){const cost=(im.moda)?CRED.modaLook:((im.tier==='basico')?CRED.imgBasico:CRED.imgPremium);if(!needCred(cost,'imagem '+(im.tier||'premium'))){im.fail='Sem créditos';replaceNode(im.id,imgHtml(im));return;}im.url=null;im.fail=null;replaceNode(im.id,imgHtml(im));log(tool('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="9" cy="9" r="1.3"/></svg>','g',`${im.moda?'Moda · '+((im.title||'look').toLowerCase()):(im.tier==='basico'?'IA.Clip Básico':'IA.Clip Pro')+' · '+im.title.toLowerCase()}`,'run'),'raw');const r=lastRun();
   if(im.moda){try{const murl=await fashnProductToModel(im.modaProdB64||(im.refs&&im.refs[0]),im.prompt,im.aspect,im.modaSeed);im.url=murl;replaceNode(im.id,imgHtml(im));if(r){r.className='st done';r.textContent='done';}save();}catch(e){im.fail=(e&&e.message)||e;replaceNode(im.id,imgHtml(im));if(r){r.className='st fail';r.textContent='fail';}}return;}
   try{const fp=IMG_FIDELITY+im.prompt+(im.onmodel?PERSON_REALISM:'');let out;
@@ -1089,34 +1150,10 @@ async function kieVideo(p){if(!KEYS.kie)throw new Error('sem chave Kie');
   const ct=await(await fetch(px(KIE_JOBS+'/createTask'),{method:'POST',headers:{Authorization:'Bearer '+KEYS.kie,'Content-Type':'application/json'},body:JSON.stringify({model:'bytedance/seedance-2-fast',input:inp})})).json();
   if(!ct||ct.code!==200||!ct.data||!ct.data.taskId)throw new Error('Kie video createTask: '+((ct&&ct.msg)||'sem taskId'));
   const tid=ct.data.taskId,t0=Date.now(),VTO=480000;
-  while(Date.now()-t0<VTO){await new Promise(r=>setTimeout(r,5000));let rj;try{const ac=new AbortController();const tm=setTimeout(()=>ac.abort(),15000);rj=((await(await fetch(px(KIE_JOBS+'/recordInfo?taskId='+tid),{headers:{Authorization:'Bearer '+KEYS.kie},signal:ac.signal})).json()).data)||{};clearTimeout(tm);}catch(_){continue;}
+  while(Date.now()-t0<VTO){await new Promise(r=>setTimeout(r,5000));let rj;try{rj=((await(await fetch(px(KIE_JOBS+'/recordInfo?taskId='+tid),{headers:{Authorization:'Bearer '+KEYS.kie}})).json()).data)||{};}catch(_){continue;}
     if(rj.state==='success'){const u=(JSON.parse(rj.resultJson||'{}').resultUrls||[])[0];if(!u)throw new Error('Kie video sem resultUrl');return{video:{url:u}};}
     if(rj.state==='fail')throw new Error('Kie video: '+(rj.failMsg||'falhou'));}
   throw new Error('Kie video: timeout');}
-/* Cadeia de reserva: tenta Kie e, se ela falhar (ex.: sem créditos), cai pro fal.ai (Seedance no fal).
-   Recebe o erro original do motor 1 (laozhang) pra não perder a causa raiz se tudo falhar. */
-async function vidBackup(p,origErr){let last=origErr||null;
-  if(KEYS.kie){try{return await kieVideo(p);}catch(e){last=e;try{console.warn('motor reserva Kie falhou, tentando fal:',(e&&e.message)||e);}catch(_){}}}
-  try{const inp={prompt:p.prompt,image_url:(p.images&&p.images[0])||p.image,resolution:'720p',aspect_ratio:p.ratio||'9:16',duration:String(parseInt(p.dur)||5),generate_audio:p.audio===true};
-    return await vidEngine(inp);}
-  catch(e){try{console.warn('motor reserva fal falhou:',(e&&e.message)||e);}catch(_){}throw last||e;}}
-async function vidImgUrl(p){const u=(p.images&&p.images.length)?p.images[0]:p.image;if(!u)return u;return /^data:image\//.test(u)?await kieUpload(u):u;}
-/* Cascata unificada de vídeo (handoff §3): laozhang Seedance primeiro (mais barato),
-   fal como reserva quando ela falhar, Kie como última opção.
-   1 tentativa por motor — sem retry interno (cada createTask na lao é cobrado). */
-async function vidGen(p){let last=null;
-  const imgUrl=await vidImgUrl(p);
-  const lzP=Object.assign({},p,{image:imgUrl,images:p.images?[imgUrl]:undefined});
-  const falInp={prompt:p.prompt,image_url:imgUrl,resolution:'720p',aspect_ratio:p.ratio||'9:16',duration:String(parseInt(p.duration)||5),generate_audio:p.audio===true};
-  const tryFal=async()=>{return await vidEngine(falInp);};
-  const tryLz=async()=>{return await lzVideo(lzP);};
-  const order=[['laozhang',tryLz],['fal',tryFal]];
-  for(const [name,fn] of order){
-    if(name==='laozhang'&&!KEYS.laozhang)continue;
-    if(name==='fal'&&!(KEYS.fal||KEYS.vidbk))continue;
-    try{return await fn();}catch(e){last=e;try{console.warn('motor de vídeo ('+name+') falhou:',(e&&e.message)||e);}catch(_){}}}
-  if(KEYS.kie){try{return await kieVideo({prompt:p.prompt,image:p.image,images:p.images,audio:p.audio,ratio:p.ratio,dur:p.duration});}catch(e){last=e;}}
-  throw last||new Error('nenhum motor de vídeo disponível');}
 async function googleImage(inp){if(!KEYS.google)throw new Error('sem chave Google');const parts=[{text:inp.prompt}];
   for(const u of (inp.image_urls||[]).filter(Boolean)){let mime='image/png',b64=u;const m=/^data:([^;]+);base64,(.*)$/.exec(u);
     if(m){mime=m[1];b64=m[2];}else{const blob=await(await fetch(px(u))).blob();mime=blob.type||'image/png';b64=await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(String(fr.result).split(',')[1]);fr.readAsDataURL(blob);});}
@@ -1129,9 +1166,9 @@ async function googleImage(inp){if(!KEYS.google)throw new Error('sem chave Googl
 async function imgEngine(inp){
   if(KEYS.imgbk){const resp=await fetch(KEYS.imgbk,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(inp)});const j=await resp.json();if(j&&j.images&&j.images[0]&&j.images[0].url)return j;if(j&&j.url)return{images:[{url:j.url}]};throw new Error('o motor de imagem próprio não retornou {images:[{url}]}');}
   const chain=[];
+  if(KEYS.google)chain.push(['Google',()=>googleImage(inp)]);
   if(KEYS.kie)chain.push(['Kie',()=>kieImage(inp)]);
   if(KEYS.laozhang||KEYS.lzNano)chain.push(['laozhang',()=>lzNanoPro({prompt:inp.prompt,image_urls:inp.image_urls,aspect:inp.aspect_ratio})]);
-  if(KEYS.google)chain.push(['Google',()=>googleImage(inp)]);
   if(KEYS.fal)chain.push(['fal',()=>falRun(IMG_MODEL,inp)]);
   if(!chain.length)return await falRun(IMG_MODEL,inp);
   let lastErr=null;
@@ -1147,46 +1184,73 @@ async function describeForUGC(imageUrl,personaPref,dur){
   if(!KEYS.anthropic||!imageUrl)return null;
   try{
     const pp=(personaPref&&personaPref!=='auto')?('Use exactly persona="'+personaPref+'".'):'Decide the persona (woman, man or child) that most naturally uses and recommends this product.';
-    const words=(String(dur)==='10')?'about 20 to 24':'about 9 to 12';
+    const is10=(String(dur)==='10');
+    const beatsRule=is10
+      ? 'Write TWO short spoken lines (beats) that together fit ~10 seconds at a natural pace: beat1 = hook that grabs attention, beat2 = payoff/recommendation. Each line ~9 to 12 words.'
+      : 'Write ONE short spoken line that fits ~5 seconds at a natural pace, ~9 to 12 words: it must hook AND recommend in a single breath.';
     let imgSource;const dm=String(imageUrl).match(/^data:(image\/[a-zA-Z+.-]+);base64,(.*)$/);if(dm){imgSource={type:"base64",media_type:dm[1],data:dm[2]};}else{imgSource={type:"url",url:imageUrl};}
-    const resp=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
+    const resp=await fetch(px("https://api.anthropic.com/v1/messages"),{method:"POST",
       headers:{"Content-Type":"application/json","x-api-key":KEYS.anthropic,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-      body:JSON.stringify({model:ANTHROPIC_MODEL,max_tokens:300,messages:[{role:"user",content:[
+      body:JSON.stringify({model:ANTHROPIC_MODEL,max_tokens:420,messages:[{role:"user",content:[
         {type:"image",source:imgSource},
-        {type:"text",text:"This is a PRODUCT photo for a UGC video of "+(dur||'5')+" seconds. Reply ONLY with JSON: {\"persona\":\"woman|man|child\",\"look\":\"...\",\"fala\":\"...\"}. persona: "+pp+" look: a SHORT English phrase for the creator's styling and setting that MATCHES the product's positioning — if the product looks premium/luxury, an elegant, well-dressed creator in a refined, tidy environment; if it looks popular/everyday, a relatable everyday creator in a simple but tidy setting. Never mismatched (never a poorly-dressed person with a luxury product). fala: ONE natural spoken sentence in BRAZILIAN PORTUGUESE this person says to camera recommending the product — "+words+" words so it fits comfortably in "+(dur||'5')+" seconds at a natural speaking pace. Casual influencer tone, simple and clearly-pronounceable words, no hashtags, no emojis, no abbreviations."}
+        {type:"text",text:'You are a Brazilian UGC creative director. Look at this PRODUCT and design the most SELLING short organic video ('+(dur||'5')+'s) for it. Reply ONLY with JSON, no markdown:\n{"persona":"woman|man|child","archetype":"...","structure":"...","model":"...","look":"...","action":"...","beats":["..."]}\n\n- persona: '+pp+'\n- archetype: pick the ONE creator vibe that best sells THIS product: "confident" (bold fashion/fitness, mirror energy), "close_friend" (intimate gossip tone, perfume/beauty), "skincare_luxe" (calm soft-luxury daily ritual, supplements/cosmetics), "wellness_calm" (serene honest, tea/wellbeing), "everyday_relatable" (casual real person, general products). Match positioning: never luxury vibe for a cheap gadget or vice-versa.\n- structure: pick the ONE narrative that fits: "detail_showcase" (show the product part by part), "not_what_you_think" (curiosity then reveal), "daily_ritual" (uses it every day, became a habit), "street_proof" (someone asked about it in the street).\n- model: a SHORT English phrase describing the SPECIFIC physical appearance of a UNIQUE Brazilian creator whose profile MATCHES this product target buyer and price level. Include approximate age, skin tone, hair (color, length, style) and overall vibe. Brazil is diverse: VARY the appearance — rotate across different ages (early 20s to 40s), skin tones (light, brown/parda, black), hair types (straight, wavy, curly, coily) and body types. Do NOT default to the same generic light-skinned woman every time. If the product is premium/expensive (designer bag, fine jewelry, luxury cosmetic), make her look polished, well-groomed and aspirational, fitting someone who buys that item. If the product is everyday/affordable, make her a relatable normal person. Seed for this generation: '+Math.floor(Math.random()*100000)+' (use it to pick a fresh, different-looking person than the obvious default).\n- look: SHORT English phrase for wardrobe + setting + lighting, consistent with the model above and the product positioning (premium = elegant outfit, refined tidy place; popular = casual outfit, simple tidy place).\n- action: SHORT English phrase for what the creator physically does with the product (holds it naturally, shows a detail, places it on table) — natural, no opening/spraying unless obvious, product stays faithful.\n- beats: '+beatsRule+' Brazilian Portuguese, casual influencer tone, simple clearly-pronounceable words, natural pauses, no hashtags, no emojis, no abbreviations, no medical claims, never sounds scripted.'}
       ]}]})});
     const j=await resp.json();let t=(j&&j.content&&j.content[0]&&j.content[0].text||'').trim().replace(/```json|```/g,'').trim();
-    return JSON.parse(t);
+    const o=JSON.parse(t);
+    if(o&&o.beats&&o.beats.length){o.fala=o.beats.join(' ');}
+    return o;
   }catch(_){return null;}
 }
 async function falKling({prompt,image_url,dur,aspect}){return await falRun('fal-ai/kling-video/v2.5-turbo/standard/image-to-video',{prompt:prompt||'',image_url:image_url,duration:String(dur||'5'),aspect_ratio:aspect||'9:16'});}
-/* SEM retry externo: cada retentativa de lzVideo cria nova task cobrada.
-   A resiliência fica na cascata de motores (laozhang → Kie → fal), não em repetição. */
 async function retryVid(fn){return await fn();}
-async function runVid(v,anchor){const isUGC=v.audio!==false;const tier=v.tier||'basico';const model=(tier==='premium')?LZ_SORA:LZ_SEEDANCE;const lbl=(tier==='premium')?'IA.Clip Vídeo Pro':'IA.Clip Vídeo';
+async function vidGen(p){let last=null;
+  const imgUrl=(p.images&&p.images.length)?p.images[0]:p.image;
+  const lzP=Object.assign({},p,{image:imgUrl,images:p.images?[imgUrl]:undefined});
+  const dur=String(parseInt(p.duration||p.dur)||5);
+  const falInp={prompt:p.prompt,image_url:imgUrl,resolution:'720p',aspect_ratio:p.ratio||'9:16',duration:dur,generate_audio:p.audio===true};
+  const tryFal=async()=>{return await vidEngine(falInp);};
+  const tryLz=async()=>{return await lzVideo(lzP);};
+  const tryKie=async()=>{return await kieVideo({prompt:p.prompt,image:p.image,images:p.images,audio:p.audio,ratio:p.ratio,dur:p.dur||p.duration});};
+  const order=[['laozhang',tryLz],['fal',tryFal],['kie',tryKie]];
+  for(const [name,fn] of order){
+    if(name==='laozhang'){
+      if(lzSkip()){try{console.warn('Lao em cooldown — pulando ('+lzSkipReason()+')');}catch(_){}continue;}
+      if((p.model===LZ_SORA)?!(KEYS.lzSora||KEYS.laozhang):!KEYS.laozhang)continue;
+    }
+    if(name==='fal'&&!(KEYS.fal||KEYS.vidbk))continue;
+    if(name==='kie'&&!KEYS.kie)continue;
+    try{return await fn();}
+    catch(e){last=e;try{console.warn('motor de vídeo ('+name+') falhou:',(e&&e.message)||e);}catch(_){}
+      if(name==='laozhang'&&e&&e.lzCharged){lzTrip('task '+(e.lzTaskId||'?')+' criada mas falhou');throw e;}}}
+  throw last||new Error('nenhum motor de vídeo disponível');}
+async function runVid(v,anchor){
+  if(v.__running){try{console.warn('runVid: '+v.id+' já em execução — ignorando clique duplo');}catch(_){}return;}
+  v.__running=true;
+  const isUGC=v.audio!==false;const tier=v.tier||'basico';const model=(tier==='premium')?LZ_SORA:LZ_SEEDANCE;const lbl=(tier==='premium')?'IA.Clip Vídeo Pro':'IA.Clip Vídeo';
   log(tool(IC.video,'v',`${lbl} · ${v.format} · ${v.dur||'5'}s`,'run'),'raw');const r=lastRun();
   try{let out;
-    if(v.modaCine){/* handoff §3: look com pessoa NUNCA vai pro Seedance i2v (filtro de rosto) — Kling no fal é o motor da passarela */
+    if(v.modaCine){
       if(KEYS.fal){try{out=await falKling({prompt:v.fmtPrompt,image_url:v.srcUrl,dur:v.dur||'5',aspect:v.aspect||'9:16'});}
         catch(e1){console.warn('vídeo moda (Kling) falhou, tentando cascata:',(e1&&e1.message)||e1);out=await vidGen({prompt:v.fmtPrompt,image:v.srcUrl,duration:v.dur||'5',ratio:v.aspect||'9:16',audio:false,model:LZ_SEEDANCE});}}
       else{out=await vidGen({prompt:v.fmtPrompt,image:v.srcUrl,duration:v.dur||'5',ratio:v.aspect||'9:16',audio:false,model:LZ_SEEDANCE});}}
-    else if(KEYS.laozhang){
-      if(isUGC){
+    else if(isUGC){
         const p=prodOf(v);
         const refImgs=(p?S.images.filter(im=>{const q=prodOf(im);return q&&q.id===p.id&&!im.onmodel&&im.url;}):[]).map(im=>im.url).slice(0,2);
         const refs=v.ugcRef?[v.ugcRef]:(refImgs.length?refImgs:[v.srcUrl]);
         const d=await describeForUGC(refs[0],ugcPersona,v.dur||'5');
-        const persona=(d&&d.persona)||((ugcPersona&&ugcPersona!=='auto')?ugcPersona:'woman');
         const fala=(d&&d.fala)?d.fala:'';
         const speak=fala?(' The creator speaks this line in Brazilian Portuguese at a natural, unhurried conversational pace, starting to talk right away and finishing comfortably before the clip ends, with lip movement accurately synced to each word: "'+fala+'". The mouth moves naturally and matches the words — no silent staring, no rushing, no repeating.'):' The creator looks at the camera and says one natural sentence in Brazilian Portuguese about the product, unhurried, lip movement synced.';
-        const t2v='A real, candid Brazilian '+persona+' content creator films a casual phone-style UGC video, holding and naturally using the product shown in the reference image (keep the product faithful: same shape, color, label and details).'+((d&&d.look)?(' Styling and setting: '+d.look+'.'):'')+' '+v.fmtPrompt+speak+PERSON_REALISM;
+        const t2v=buildUGCPrompt(d,(prodOf(v)&&prodOf(v).name)||'the product',v.fmtPrompt,speak);
         out=await vidGen({prompt:t2v,images:refs,role:'reference_image',duration:v.dur||'5',ratio:v.aspect||'9:16',audio:true,model:LZ_SEEDANCE});
       }
-      else{out=await vidGen({prompt:v.fmtPrompt,image:v.srcUrl,duration:v.dur||'5',ratio:v.aspect||'9:16',audio:false,model});}
-    }
-    else{const inp={prompt:v.fmtPrompt,image_url:v.srcUrl,resolution:'720p',aspect_ratio:v.aspect||'9:16',duration:v.dur||'5',generate_audio:isUGC};if(anchor)inp.end_image_url=v.srcUrl;if(!isUGC&&!v.modaCine)inp.negative_prompt=VIDEO_NEGATIVE;out=await retryVid(()=>vidEngine(inp));}
+    else{out=await vidGen({prompt:v.fmtPrompt,image:v.srcUrl,duration:v.dur||'5',ratio:v.aspect||'9:16',audio:false,model});}
     const _vu=out&&out.video&&out.video.url;if(!_vu)throw new Error('o motor de vídeo não retornou vídeo (tente de novo)');v.url=_vu;replaceNode(v.id,vidHtml(v));if(r){r.className='st done';r.textContent='done';}log(`Vídeo "${v.format}" pronto.`);save();if(v.audio===false)sugerirComercial();}
-  catch(err){try{console.warn('vídeo falhou:',(err&&err.message)||err);}catch(_){}v.fail='Geração de vídeo indisponível no momento — tente novamente.';replaceNode(v.id,vidHtml(v));if(r){r.className='st fail';r.textContent='fail';}}}
+  catch(err){try{console.warn('vídeo falhou:',(err&&err.message)||err);}catch(_){}
+    const msg=(err&&err.lzCharged)?('Cobrança da Lao já aconteceu (task '+(err.lzTaskId||'?')+'). Confira no painel antes de tentar de novo.')
+              :(err&&err.lzQuota)?('Laozhang sem saldo. FAL/Kie estão sendo usados como reserva.')
+              :'Geração de vídeo indisponível no momento — tente novamente.';
+    v.fail=msg;replaceNode(v.id,vidHtml(v));if(r){r.className='st fail';r.textContent='fail';}}
+  finally{try{delete v.__running;}catch(_){v.__running=false;}}}
 async function genVideo(id,fi,kind){const im=S.images.find(x=>x.id===id);if(!im||!im.url)return;pop.style.display='none';
   if(im.moda&&kind==='moda'){const mf=MODA_FMTS[fi];if(!mf)return;if(!needCred(vidCost(curVidDur,false),'vídeo de moda'))return;const _pn=(prodOf(im)&&prodOf(im).name)||'piece';const mva=(['1:1','9:16','16:9'].includes(im.aspect)?im.aspect:'9:16');const msp=childSpot(id,170,Math.round(170*aspRatio(mva))+40+84);const mv={id:'v'+(vc++),parent:id,x:msp.x,y:msp.y,format:mf.format,dur:curVidDur,tier:'basico',aspect:mva,audio:false,modaCine:true,script:'',fmtPrompt:FIDELITY_MODA+'Keep the worn product ('+_pn+') identical and clearly visible the whole time. '+mf.prompt,srcUrl:im.url,url:null,fail:null,sel:false};S.videos.push(mv);S.links.push({from:id,to:mv.id});renderWorld();runVid(mv,true);return;}
   const ugc=(kind==='ugc');const cine=!ugc;const f=(ugc?PERSON_FMTS:PRODUCT_FMTS)[fi];if(!f)return;const cost=vidCost(curVidDur,ugc);if(!needCred(cost,ugc?'vídeo UGC':'vídeo do produto'))return;const va=cine?(['1:1','9:16','16:9'].includes(im.aspect)?im.aspect:'9:16'):'9:16';const sp=childSpot(id,170,Math.round(170*aspRatio(va))+40+84);

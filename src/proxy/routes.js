@@ -4,12 +4,13 @@
  * standalone sem dependência de cota de relatórios.
  */
 import { Router } from 'express';
-import https from 'node:https';
+import { shrinkLaozhangSeedanceBody } from '../media/lzFrame.js';
 
 export const proxyRouter = Router();
 
 const DEFAULT_UPSTREAM_TIMEOUT_MS = 25000;
-const LAOZHANG_UPSTREAM_TIMEOUT_MS = 90000;
+const LAOZHANG_UPSTREAM_TIMEOUT_MS = 120000;
+const LAOZHANG_RETRY_DELAYS_MS = [0, 1200, 3000];
 
 const TARGETS = {
   anthropic: 'https://api.anthropic.com',
@@ -117,6 +118,22 @@ function injectAuth(provider, headers, bodyText) {
   return { ok: true };
 }
 
+function forceJsonContentType(provider, headers, hasBody) {
+  if (!hasBody) return;
+  if (!['anthropic', 'kie', 'kieupload', 'laozhang', 'openai', 'fashn'].includes(provider)) return;
+  delete headers['content-type'];
+  delete headers['Content-Type'];
+  headers['Content-Type'] = 'application/json';
+}
+
+function logUpstreamError(provider, path, status, upstreamBody) {
+  if (provider !== 'anthropic') return;
+  let body = '';
+  try { body = upstreamBody.toString('utf8'); } catch (_) {}
+  if (!body) return;
+  console.error(`[proxy][anthropic] upstream ${status} /${path}: ${body.slice(0, 2000)}`);
+}
+
 proxyRouter.get('/keys/status', (_req, res) => {
   const status = {};
   for (const [provider, envName] of Object.entries(KEY_MAP)) {
@@ -159,6 +176,15 @@ for (const provider of Object.keys(TARGETS)) {
     if (authResult.queryKey) {
       url += (url.includes('?') ? '&' : '?') + 'key=' + encodeURIComponent(authResult.queryKey);
     }
+    forceJsonContentType(provider, fwdHeaders, rawBody.length > 0);
+
+    if (provider === 'laozhang' && req.method === 'POST' && path.includes('contents/generations/tasks')) {
+      try {
+        rawBody = await shrinkLaozhangSeedanceBody(rawBody, bodyText, req);
+      } catch (err) {
+        console.warn(`[proxy][laozhang] shrink frame falhou: ${err.message}`);
+      }
+    }
 
     const fetchOpts = { method: req.method, headers: fwdHeaders };
     if (rawBody.length) {
@@ -177,7 +203,7 @@ for (const provider of Object.keys(TARGETS)) {
       let upstreamBody = Buffer.alloc(0);
 
       if (provider === 'laozhang') {
-        const upstream = await requestViaHttps(url, fetchOpts, LAOZHANG_UPSTREAM_TIMEOUT_MS);
+        const upstream = await requestLaozhang(url, fetchOpts, LAOZHANG_UPSTREAM_TIMEOUT_MS);
         upstreamStatus = upstream.status;
         upstreamOk = upstream.status >= 200 && upstream.status < 300;
         upstreamHeadersEntries = Object.entries(upstream.headers || {});
@@ -195,6 +221,9 @@ for (const provider of Object.keys(TARGETS)) {
         console.log(
           `[proxy][${provider}] ${req.method} /${path} → ${upstreamStatus} em ${(elapsedMs / 1000).toFixed(1)}s`,
         );
+      }
+      if (!upstreamOk) {
+        logUpstreamError(provider, path, upstreamStatus, upstreamBody);
       }
 
       res.status(upstreamStatus);
@@ -223,58 +252,61 @@ function getRawBody(req) {
   });
 }
 
-function requestViaHttps(url, fetchOpts, timeoutMs = DEFAULT_UPSTREAM_TIMEOUT_MS) {
-  return new Promise((resolve, reject) => {
-    let settled = false;
-    let deadline = null;
-    let res = null;
-    const finish = (fn) => {
-      if (settled) return;
-      settled = true;
-      if (deadline) clearTimeout(deadline);
-      try { if (res) res.removeAllListeners(); } catch (_) {}
-      fn();
-    };
-    let gotResponse = false;
-    const req = https.request(url, {
+function isTransientUpstreamError(err) {
+  const msg = String((err && err.message) || '').toLowerCase();
+  const code = String((err && err.code) || '').toUpperCase();
+  return (
+    msg.includes('aborted')
+    || msg.includes('terminated')
+    || msg.includes('operation was aborted')
+    || msg.includes('socket hang up')
+    || msg.includes('closed connection')
+    || ['ECONNRESET', 'EPIPE', 'ETIMEDOUT', 'ECONNABORTED'].includes(code)
+  );
+}
+
+async function requestLaozhang(url, fetchOpts, timeoutMs) {
+  let lastErr;
+  for (let i = 0; i < LAOZHANG_RETRY_DELAYS_MS.length; i++) {
+    const delay = LAOZHANG_RETRY_DELAYS_MS[i];
+    if (delay) await new Promise((r) => setTimeout(r, delay));
+    try {
+      return await requestLaozhangFetch(url, fetchOpts, timeoutMs);
+    } catch (err) {
+      lastErr = err;
+      const transient = isTransientUpstreamError(err);
+      if (!transient || i === LAOZHANG_RETRY_DELAYS_MS.length - 1) throw err;
+      const nbytes = fetchOpts.body ? fetchOpts.body.length : 0;
+      console.warn(`[proxy][laozhang] retry ${i + 1} após ${err.code || err.message} (${nbytes}b)`);
+    }
+  }
+  throw lastErr;
+}
+
+async function requestLaozhangFetch(url, fetchOpts, timeoutMs) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const hasBody = fetchOpts.body
+      && fetchOpts.method !== 'GET'
+      && fetchOpts.method !== 'HEAD';
+    const res = await fetch(url, {
       method: fetchOpts.method,
       headers: fetchOpts.headers,
-    }, (incoming) => {
-      gotResponse = true;
-      res = incoming;
-      const chunks = [];
-      res.on('data', (chunk) => chunks.push(chunk));
-      res.on('end', () => finish(() => resolve({
-        status: res.statusCode || 502,
-        headers: res.headers || {},
-        body: Buffer.concat(chunks),
-      })));
-      res.on('error', (err) => finish(() => {
-        try { req.destroy(); } catch (_) {}
-        reject(err);
-      }));
+      body: hasBody ? fetchOpts.body : undefined,
+      signal: ctrl.signal,
     });
-    deadline = setTimeout(() => finish(() => {
-      try { req.destroy(); } catch (_) {}
-      reject(new Error(`upstream timeout after ${timeoutMs}ms`));
-    }), timeoutMs);
-    const idleMs = Math.max(15000, Math.floor(timeoutMs / 3));
-    req.setTimeout(idleMs, () => finish(() => {
-      try { req.destroy(); } catch (_) {}
-      reject(new Error(`upstream idle timeout after ${idleMs}ms`));
-    }));
-    req.on('error', (err) => finish(() => reject(err)));
-    req.on('close', () => {
-      if (!settled && !gotResponse) {
-        finish(() => {
-          try { req.destroy(); } catch (_) {}
-          reject(new Error('upstream closed connection without response'));
-        });
-      }
-    });
-    if (fetchOpts.body && fetchOpts.method !== 'GET' && fetchOpts.method !== 'HEAD') {
-      req.write(fetchOpts.body);
+    return {
+      status: res.status,
+      headers: Object.fromEntries(res.headers.entries()),
+      body: Buffer.from(await res.arrayBuffer()),
+    };
+  } catch (err) {
+    if (err && err.name === 'AbortError') {
+      throw new Error(`upstream timeout after ${timeoutMs}ms`);
     }
-    req.end();
-  });
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
 }

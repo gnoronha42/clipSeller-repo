@@ -5,6 +5,7 @@ import {
   creditFromPayment,
   debit,
   getBalance,
+  getGenerationDashboard,
   getPackageBySlug,
   listFeatureCosts,
   listPackages,
@@ -66,6 +67,25 @@ router.get('/packages', requireAuth, async (_req, res) => {
 router.get('/feature-costs', requireAuth, async (_req, res) => {
   const costs = await listFeatureCosts();
   res.json({ costs });
+});
+
+router.get('/dashboard', requireAuth, async (req, res) => {
+  try {
+    const days = Number(req.query.days || 30);
+    const isAdmin = req.user.role === 'admin';
+    const data = await getGenerationDashboard({
+      userId: req.user.id,
+      isAdmin,
+      days,
+    });
+    res.json({
+      scope: isAdmin ? 'global' : 'user',
+      ...data,
+    });
+  } catch (err) {
+    console.error('[credits/dashboard]', err.message);
+    res.status(500).json({ error: 'Erro ao carregar dashboard' });
+  }
 });
 
 /**
