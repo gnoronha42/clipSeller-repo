@@ -9,8 +9,8 @@ import { shrinkLaozhangSeedanceBody } from '../media/lzFrame.js';
 export const proxyRouter = Router();
 
 const DEFAULT_UPSTREAM_TIMEOUT_MS = 25000;
-const LAOZHANG_UPSTREAM_TIMEOUT_MS = 120000;
-const LAOZHANG_RETRY_DELAYS_MS = [0, 1200, 3000];
+const LAOZHANG_UPSTREAM_TIMEOUT_MS = Number(process.env.LAOZHANG_UPSTREAM_TIMEOUT_MS) || 600000;
+const LAOZHANG_RETRY_DELAYS_MS = [0, 2000, 5000, 10000];
 
 const TARGETS = {
   anthropic: 'https://api.anthropic.com',
