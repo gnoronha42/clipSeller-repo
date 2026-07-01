@@ -4,6 +4,8 @@
  * standalone sem dependência de cota de relatórios.
  */
 import { Router } from 'express';
+import https from 'node:https';
+import { URL } from 'node:url';
 import { shrinkLaozhangSeedanceBody } from '../media/lzFrame.js';
 
 export const proxyRouter = Router();
@@ -298,29 +300,43 @@ async function requestLaozhang(url, fetchOpts, timeoutMs) {
 }
 
 async function requestLaozhangFetch(url, fetchOpts, timeoutMs) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-  try {
+  return requestLaozhangHttps(url, fetchOpts, timeoutMs);
+}
+
+function requestLaozhangHttps(url, fetchOpts, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const u = new URL(url);
     const hasBody = fetchOpts.body
       && fetchOpts.method !== 'GET'
       && fetchOpts.method !== 'HEAD';
-    const res = await fetch(url, {
-      method: fetchOpts.method,
-      headers: fetchOpts.headers,
-      body: hasBody ? fetchOpts.body : undefined,
-      signal: ctrl.signal,
+    const headers = { ...fetchOpts.headers };
+    if (hasBody) headers['content-length'] = String(fetchOpts.body.length);
+
+    const req = https.request({
+      hostname: u.hostname,
+      port: u.port || 443,
+      path: u.pathname + u.search,
+      method: fetchOpts.method || 'GET',
+      headers,
+      timeout: timeoutMs,
+    }, (res) => {
+      const chunks = [];
+      res.on('data', (c) => chunks.push(c));
+      res.on('end', () => {
+        resolve({
+          status: res.statusCode || 502,
+          headers: res.headers,
+          body: Buffer.concat(chunks),
+        });
+      });
     });
-    return {
-      status: res.status,
-      headers: Object.fromEntries(res.headers.entries()),
-      body: Buffer.from(await res.arrayBuffer()),
-    };
-  } catch (err) {
-    if (err && err.name === 'AbortError') {
-      throw new Error(`upstream timeout after ${timeoutMs}ms`);
-    }
-    throw err;
-  } finally {
-    clearTimeout(timer);
-  }
+
+    req.on('timeout', () => {
+      req.destroy(new Error(`upstream timeout after ${timeoutMs}ms`));
+    });
+    req.on('error', reject);
+
+    if (hasBody) req.write(fetchOpts.body);
+    req.end();
+  });
 }
