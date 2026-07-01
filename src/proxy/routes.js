@@ -265,17 +265,31 @@ function isTransientUpstreamError(err) {
   );
 }
 
+function isLaozhangBillablePost(method, url) {
+  if (method !== 'POST') return false;
+  const u = String(url || '').toLowerCase();
+  return u.includes('/contents/generations/tasks')
+    || u.includes('/videos')
+    || u.includes('/images/generations');
+}
+
 async function requestLaozhang(url, fetchOpts, timeoutMs) {
+  const billable = isLaozhangBillablePost(fetchOpts.method, url);
+  const delays = billable ? [0] : LAOZHANG_RETRY_DELAYS_MS;
   let lastErr;
-  for (let i = 0; i < LAOZHANG_RETRY_DELAYS_MS.length; i++) {
-    const delay = LAOZHANG_RETRY_DELAYS_MS[i];
+  for (let i = 0; i < delays.length; i++) {
+    const delay = delays[i];
     if (delay) await new Promise((r) => setTimeout(r, delay));
     try {
+      if (billable && i === 0) {
+        const nbytes = fetchOpts.body ? fetchOpts.body.length : 0;
+        console.log(`[proxy][laozhang] createTask POST single-shot (${nbytes}b)`);
+      }
       return await requestLaozhangFetch(url, fetchOpts, timeoutMs);
     } catch (err) {
       lastErr = err;
       const transient = isTransientUpstreamError(err);
-      if (!transient || i === LAOZHANG_RETRY_DELAYS_MS.length - 1) throw err;
+      if (!transient || i === delays.length - 1) throw err;
       const nbytes = fetchOpts.body ? fetchOpts.body.length : 0;
       console.warn(`[proxy][laozhang] retry ${i + 1} após ${err.code || err.message} (${nbytes}b)`);
     }

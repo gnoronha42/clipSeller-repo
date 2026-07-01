@@ -986,7 +986,7 @@ async function falRun(model,input){if(!KEYS.fal){showGate();throw new Error('Con
   if(out&&(out.images||out.video))return out;
   throw new Error('fal: resposta sem imagem'+(out&&out.detail?(' — '+(typeof out.detail==='string'?out.detail:JSON.stringify(out.detail))):' (tente de novo)'));}
 async function lzPost(path,body,key){const K=key||KEYS.laozhang;let last='';
-  for(let a=0;a<3;a++){let resp;try{resp=await fetch(px(LZ_BASE+path),{method:"POST",headers:{Authorization:"Bearer "+K,"Content-Type":"application/json"},body:JSON.stringify(body)});}
+  for(let a=0;a<1;a++){let resp;try{resp=await fetch(px(LZ_BASE+path),{method:"POST",headers:{Authorization:"Bearer "+K,"Content-Type":"application/json"},body:JSON.stringify(body)});}
     catch(net){last='laozhang sem resposta (rede/CORS): '+((net&&net.message)||net);await new Promise(r=>setTimeout(r,2000));continue;}
     const txt=await resp.text();let j=null;try{j=JSON.parse(txt);}catch(_){}
     if(resp.ok&&j)return j;
@@ -1015,7 +1015,7 @@ async function lzVideo({prompt,image,images,duration,ratio,audio,model,role}){
     const body={model:model||LZ_SEEDANCE,content,ratio:ratio||"9:16",duration:parseInt(duration)||5,resolution:"720p",watermark:false,generate_audio:!!audio};
     reqInit={method:"POST",headers:{Authorization:"Bearer "+key,"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(body)};}
   let j=null,last='';
-  for(let a=0;a<3;a++){let resp;try{resp=await fetch(px(createUrl),reqInit);}catch(net){last='laozhang sem resposta (rede/CORS): '+((net&&net.message)||net);await new Promise(r=>setTimeout(r,2000));continue;}
+  for(let a=0;a<1;a++){let resp;try{resp=await fetch(px(createUrl),reqInit);}catch(net){last='laozhang sem resposta (rede/CORS): '+((net&&net.message)||net);await new Promise(r=>setTimeout(r,2000));continue;}
     const txt=await resp.text();try{j=JSON.parse(txt);}catch(_){j=null;}
     if(resp.ok&&j)break;
     last='laozhang '+resp.status+': '+(((j&&j.error&&(j.error.message||j.error))||(j&&j.message))||txt.slice(0,180)||'sem corpo');j=null;
@@ -1156,11 +1156,12 @@ async function retryVid(fn){let e;for(let i=0;i<3;i++){try{return await fn();}ca
 async function vidCascade(opts){
   // laozhang é mais barato E mais rápido -> sempre motor principal; Kie = reserva; backend/fal = última rede
   const haveLz=!!KEYS.laozhang, haveKie=!!KEYS.kie;
-  if(haveLz){try{return await retryVid(()=>lzVideo(opts.lzArgs));}catch(e1){if(!haveKie)throw e1;console.warn('motor principal (laozhang) falhou, reserva Kie:',(e1&&e1.message)||e1);return await kieVideo(opts.kieArgs);}}
+  if(haveLz){try{return await lzVideo(opts.lzArgs);}catch(e1){if(!haveKie)throw e1;console.warn('motor principal (laozhang) falhou, reserva Kie:',(e1&&e1.message)||e1);return await kieVideo(opts.kieArgs);}}
   if(haveKie)return await kieVideo(opts.kieArgs);
   return await retryVid(()=>vidEngine(opts.beArgs));
 }
-async function runVid(v,anchor){const isUGC=v.audio!==false;const tier=v.tier||'basico';const model=(tier==='premium')?LZ_SORA:LZ_SEEDANCE;const lbl=(tier==='premium')?'IA.Clip Vídeo Pro':'IA.Clip Vídeo';
+async function runVid(v,anchor){if(v.__running){try{console.warn('runVid: '+v.id+' já em execução — ignorando clique duplo');}catch(_){}return;}v.__running=true;
+  const isUGC=v.audio!==false;const tier=v.tier||'basico';const model=(tier==='premium')?LZ_SORA:LZ_SEEDANCE;const lbl=(tier==='premium')?'IA.Clip Vídeo Pro':'IA.Clip Vídeo';
   log(tool(IC.video,'v',`${lbl} · ${v.format} · ${v.dur||'5'}s`,'run'),'raw');const r=lastRun();
   try{let out;
     if(v.modaCine){out=await retryVid(()=>falKling({prompt:v.fmtPrompt,image_url:v.srcUrl,dur:v.dur||'5',aspect:v.aspect||'9:16'}));}
@@ -1183,7 +1184,8 @@ async function runVid(v,anchor){const isUGC=v.audio!==false;const tier=v.tier||'
         kieArgs:{prompt:v.fmtPrompt,image:v.srcUrl,audio:false,ratio:v.aspect||'9:16',dur:v.dur||'5'},
         beArgs:(()=>{const inp={prompt:v.fmtPrompt,image_url:v.srcUrl,resolution:'720p',aspect_ratio:v.aspect||'9:16',duration:v.dur||'5',generate_audio:false};if(anchor)inp.end_image_url=v.srcUrl;if(!v.modaCine)inp.negative_prompt=VIDEO_NEGATIVE;return inp;})()});}
     const _vu=out&&out.video&&out.video.url;if(!_vu)throw new Error('o motor de vídeo não retornou vídeo (tente de novo)');v.url=_vu;replaceNode(v.id,vidHtml(v));if(r){r.className='st done';r.textContent='done';}log(`Vídeo "${v.format}" pronto.`);save();if(v.audio===false)sugerirComercial();}
-  catch(err){try{console.warn('vídeo falhou:',(err&&err.message)||err);}catch(_){}v.fail='Geração de vídeo indisponível no momento — tente novamente.';replaceNode(v.id,vidHtml(v));if(r){r.className='st fail';r.textContent='fail';}}}
+  catch(err){try{console.warn('vídeo falhou:',(err&&err.message)||err);}catch(_){}v.fail='Geração de vídeo indisponível no momento — tente novamente.';replaceNode(v.id,vidHtml(v));if(r){r.className='st fail';r.textContent='fail';}}
+  finally{try{delete v.__running;}catch(_){v.__running=false;}}}
 async function genVideo(id,fi,kind){const im=S.images.find(x=>x.id===id);if(!im||!im.url)return;pop.style.display='none';
   if(im.moda&&kind==='moda'){const mf=MODA_FMTS[fi];if(!mf)return;if(!needCred(vidCost(curVidDur,false),'vídeo de moda'))return;const _pn=(prodOf(im)&&prodOf(im).name)||'piece';const mva=(['1:1','9:16','16:9'].includes(im.aspect)?im.aspect:'9:16');const msp=childSpot(id,170,Math.round(170*aspRatio(mva))+40+84);const mv={id:'v'+(vc++),parent:id,x:msp.x,y:msp.y,format:mf.format,dur:curVidDur,tier:'basico',aspect:mva,audio:false,modaCine:true,script:'',fmtPrompt:FIDELITY_MODA+'Keep the worn product ('+_pn+') identical and clearly visible the whole time. '+mf.prompt,srcUrl:im.url,url:null,fail:null,sel:false};S.videos.push(mv);S.links.push({from:id,to:mv.id});renderWorld();runVid(mv,true);return;}
   const ugc=(kind==='ugc');const cine=!ugc;const f=(ugc?PERSON_FMTS:PRODUCT_FMTS)[fi];if(!f)return;const cost=vidCost(curVidDur,ugc);if(!needCred(cost,ugc?'vídeo UGC':'vídeo do produto'))return;const va=cine?(['1:1','9:16','16:9'].includes(im.aspect)?im.aspect:'9:16'):'9:16';const sp=childSpot(id,170,Math.round(170*aspRatio(va))+40+84);
