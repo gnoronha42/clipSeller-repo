@@ -1166,9 +1166,9 @@ async function googleImage(inp){if(!KEYS.google)throw new Error('sem chave Googl
 async function imgEngine(inp){
   if(KEYS.imgbk){const resp=await fetch(KEYS.imgbk,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(inp)});const j=await resp.json();if(j&&j.images&&j.images[0]&&j.images[0].url)return j;if(j&&j.url)return{images:[{url:j.url}]};throw new Error('o motor de imagem próprio não retornou {images:[{url}]}');}
   const chain=[];
-  if(KEYS.google)chain.push(['Google',()=>googleImage(inp)]);
   if(KEYS.kie)chain.push(['Kie',()=>kieImage(inp)]);
   if(KEYS.laozhang||KEYS.lzNano)chain.push(['laozhang',()=>lzNanoPro({prompt:inp.prompt,image_urls:inp.image_urls,aspect:inp.aspect_ratio})]);
+  if(KEYS.google)chain.push(['Google',()=>googleImage(inp)]);
   if(KEYS.fal)chain.push(['fal',()=>falRun(IMG_MODEL,inp)]);
   if(!chain.length)return await falRun(IMG_MODEL,inp);
   let lastErr=null;
