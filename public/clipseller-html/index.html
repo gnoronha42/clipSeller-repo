@@ -140,7 +140,7 @@
 <div class="app" id="app">
   <div class="top"><button class="kb" onclick="toggleSide()" id="sideBtn" title="Recolher / mostrar menu" style="padding:7px 9px;margin-right:2px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button><div class="logo">C</div><h1>CLIPSELLER</h1>
     <div class="tab"><span class="dot" id="topdot"></span> Canvas de Campanha</div>
-    <div class="right"><span class="cred" id="cred" onclick="topUp()" title="Adicionar créditos (demo)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="12" cy="12" r="8"/><path d="M14.5 9.5a3 3 0 1 0 0 5"/></svg> <b id="credn">500</b></span><button class="kb" onclick="toggleTheme()" id="themeBtn" title="Painel preto / branco">◐ Tema</button><button class="kb" onclick="togglePanel()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg> Diretor</button></div></div>
+    <div class="right"><span class="cred" id="cred" onclick="topUp()" title="Adicionar créditos (demo)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="12" cy="12" r="8"/><path d="M14.5 9.5a3 3 0 1 0 0 5"/></svg> <b id="credn">500</b></span><button class="kb" onclick="toggleTheme()" id="themeBtn" title="Painel preto / branco">◐ Tema</button><button class="kb" onclick="togglePanel()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg> Diretor</button><button class="kb" onclick="showGate()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><circle cx="8" cy="8" r="3"/><path d="M10.2 10.2 18 18M16 18l2-2 2 2-2 2z"/></svg> Chaves</button></div></div>
   <nav class="side" id="side">
     <div class="sgrp">Estúdios</div>
     <div class="si" onclick="goStation('rapida',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 11-13h-7l0-7z"/></svg><span>Geração Rápida</span></div>
@@ -150,6 +150,7 @@
     <div class="si" onclick="goStation('acessorios',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12l3 5-9 13L3 8z"/><path d="M3 8h18M9 3 6 8l6 13 6-13-3-5"/></svg>Estúdio de Acessórios</div>
     <div class="si" onclick="goStation('titulo',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Gerador de Título</div>
     <div class="sgrp">Sistema</div>
+    <div class="si" onclick="goStation('chaves',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7.5" cy="15.5" r="3.5"/><path d="m10 13 8-8M16 5l3 3M19 2l3 3"/></svg>Chaves & Config</div>
   </nav>
   <main class="stage" id="stage" style="display:none">
     <div id="world"><svg id="wires"></svg></div>
@@ -323,9 +324,9 @@ async function inAnalyzeReference(refB64,name){const normalized=await inNormaliz
   const userInstr=`Analise esta foto de referência. Descreva em INGLÊS conciso (máx 150 palavras, frase fluida, sem listas, sem JSON): 1) ambiente/cenário (materiais, superfícies, props); 2) iluminação (tipo, direção, dureza, temperatura); 3) paleta de cores e mood; 4) composição e ângulo de câmera; 5) mood geral; 6) estilo fotográfico. NÃO descreva o produto específico nem marcas. Descreva com riqueza pra a cena ser RECRIADA com outro produto. Comece direto pela descrição.`;
   const d=await anthropicMsg({model:ANTHROPIC_MODEL,max_tokens:600,system:sys,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:'image/jpeg',data:refData}},{type:'text',text:userInstr}]}]});return (d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();}
 function inBuildPrompt(name,cat,aesthetic,extra){return ['TASK: Create a new product photo by combining elements from the two input images.','','IMAGE 1 (PRODUCT REFERENCE): This is the product. Preserve it 100% identical in the output — exact same shape, color, material, all visible details. The product from Image 1 is the only product that appears in the final photo.','','IMAGE 2 (STYLE REFERENCE): Use only the AESTHETIC of this image — the lighting, mood, composition, camera angle, color palette, background style, and overall photographic genre. DO NOT copy the specific product, model, person, or objects from Image 2 into the output.','','AESTHETIC DETAILS (from Image 2):',aesthetic,'','OUTPUT REQUIREMENTS:','- A new scene that has NEVER existed before — not a copy of Image 2','- The product from Image 1 placed naturally in a NEW environment that matches the aesthetic','- Lighting, composition and color palette match the style reference','- No people from Image 2 carried over','- No specific objects from Image 2 carried over','- Professional e-commerce quality, photorealistic, sharp focus on the product',extra?('- User adjustment: '+extra):''].filter(Boolean).join('\n');}
-async function fashnRun(modelName,inputs){if(!KEYS.fashn)throw new Error('Motor de Moda indisponível no momento.');
+async function fashnRun(modelName,inputs){if(!KEYS.fashn)throw new Error('Configure a chave do Motor de Moda em Chaves & Config.');
   let r=null,last='';
-  for(let a=0;a<5;a++){try{r=await fetch(px('https://api.fashn.ai/v1/run'),{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+KEYS.fashn},body:JSON.stringify({model_name:modelName,inputs})});}catch(net){last='Moda sem resposta: '+((net&&net.message)||net);await new Promise(res=>setTimeout(res,2500*(a+1)));continue;}
+  for(let a=0;a<5;a++){try{r=await fetch('https://api.fashn.ai/v1/run',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+KEYS.fashn},body:JSON.stringify({model_name:modelName,inputs})});}catch(net){last='Moda sem resposta: '+((net&&net.message)||net);await new Promise(res=>setTimeout(res,2500*(a+1)));continue;}
     if(r.ok)break;
     const e=await r.json().catch(()=>({}));const hint=r.status===401?' — chave do Motor de Moda inválida':r.status===402?' — créditos do Motor de Moda esgotados':'';last='Moda '+r.status+hint+': '+((e.error&&(e.error.message||e.error))||e.message||'');
     if(r.status===429||r.status===503||r.status===502||r.status===500){await new Promise(res=>setTimeout(res,2500*(a+1)));continue;}
@@ -333,7 +334,7 @@ async function fashnRun(modelName,inputs){if(!KEYS.fashn)throw new Error('Motor 
   if(!r||!r.ok)throw new Error(last||'Moda: indisponível, tente de novo');
   const d=await r.json();if(!d.id)throw new Error('Motor de Moda não retornou ID');
   for(let i=0;i<90;i++){await new Promise(res=>setTimeout(res,4000));
-    const s=await fetch(px('https://api.fashn.ai/v1/status/'+d.id),{headers:{'Authorization':'Bearer '+KEYS.fashn}});if(!s.ok)continue;
+    const s=await fetch('https://api.fashn.ai/v1/status/'+d.id,{headers:{'Authorization':'Bearer '+KEYS.fashn}});if(!s.ok)continue;
     const sd=await s.json();const st=(sd.status||'').toLowerCase();
     if(st==='completed'){const url=Array.isArray(sd.output)?sd.output[0]:sd.output;if(url)return url;throw new Error('Moda: sem URL no output');}
     if(st==='failed'||st==='error')throw new Error('Moda falhou: '+((sd.error&&(sd.error.message||sd.error))||'tente de novo'));}
@@ -354,7 +355,7 @@ function modaUpload(input){const f=input.files&&input.files[0];if(!f)return;cons
 function showModaResult(url){const out=document.getElementById('modaOut');if(!out)return;out.innerHTML=`<div class="insp-result"><img src="${url}"><div class="insp-actions">${ibtns(url,'moda-provador.jpg','genModa()')}</div></div>`;}
 async function genModa(){const out=document.getElementById('modaOut');
   if(!modaProd){if(out)out.innerHTML='<div class="err">Suba a foto da peça.</div>';return;}
-  if(!KEYS.fashn){if(out)out.innerHTML='<div class="err">Motor de Moda indisponível no momento.</div>';return;}
+  if(!KEYS.fashn){if(out)out.innerHTML='<div class="err">Configure a chave do Motor de Moda em Chaves & Config em Chaves & Config.</div>';return;}
   if(!needCred(20,'Moda · Provador'))return;
   out.innerHTML=`<div class="insp-load"><div class="spin"></div> vestindo na modelo… (pode levar até ~1 min)</div>`;
   try{const mp=(document.getElementById('modaModel').value||'').trim();const asp=document.getElementById('modaAsp').value||'3:4';
@@ -362,7 +363,7 @@ async function genModa(){const out=document.getElementById('modaOut');
     const url=await fashnProductToModel(modaProd,prompt,asp,Math.floor(Math.random()*4000000000));modaLastUrl=url;showModaResult(url);
   }catch(err){out.innerHTML=`<div class="err">Não consegui gerar: ${(err&&err.message)||err}</div>`;}}
 function goStation(st,el){document.querySelectorAll('.side .si').forEach(x=>x.classList.remove('on'));if(el)el.classList.add('on');const station=document.getElementById('station');
-  if(st==='chaves'){if(station)station.classList.remove('on');renderUpload();return;}
+  if(st==='chaves'){if(station)station.classList.remove('on');showGate();return;}
   if(st==='rapida'){if(!KEYS.kie&&!KEYS.laozhang&&!KEYS.fal){showGate();return;}renderRapida();return;}
   if(st==='estudio'){if(station)station.classList.remove('on');enterCanvasMode('estudio');return;}
   if(st==='acessorios'){if(station)station.classList.remove('on');enterCanvasMode('acessorios');return;}
@@ -382,7 +383,7 @@ function enterCanvasMode(m){if(MODE!==m){MODE=m;S=WS[m];}pop.style.display='none
   center.innerHTML=`<div class="card-c"><h3>${titles[m]||titles.estudio}</h3><p>${subs[m]||subs.estudio}</p><button class="btn acc" onclick="newGen()">${cta[m]||cta.estudio} →</button></div>`;}
 /* persistence */
 let saveT;function saveSoon(){clearTimeout(saveT);saveT=setTimeout(save,700);}
-function save(){try{localStorage.setItem(LSK,JSON.stringify({WS,MODE,ic,vc,pc,fc,credits,theme,imgEngineMode}));}catch(_){}}
+function save(){try{localStorage.setItem(LSK,JSON.stringify({WS,MODE,ic,vc,pc,fc,credits,theme,imgEngineMode}));localStorage.setItem(KSK,JSON.stringify(KEYS));}catch(_){}}
 function load(){
   const def={anthropic:"",fal:"",kie:"",google:"",laozhang:"",lzSora:"",lzImg:"",lzNano:"",proxy:"http://localhost:8787",vidbk:"",imgbk:"",ugcbk:"",fashn:""};
   let keys=null;try{const k=JSON.parse(localStorage.getItem(KSK));if(k&&typeof k==='object')keys=k;}catch(_){}
@@ -394,8 +395,7 @@ function load(){
   MODE=(['moda','acessorios'].includes(d.MODE))?d.MODE:'estudio';S=WS[MODE];
   ic=d.ic||0;vc=d.vc||0;pc=d.pc||0;fc=d.fc||0;KEYS=Object.assign(def,keys||d.KEYS||{});credits=(typeof d.credits==='number')?d.credits:500;theme=d.theme||'light';imgEngineMode=(d.imgEngineMode==='fal')?'fal':'lz';if(keys)save();return true;}}catch(_){}
   KEYS=Object.assign(def,keys||{});if(keys){try{save();}catch(_){}}return false;}
-function csProxy(u){if(!u||typeof u!=='string')return u;if(u.charAt(0)==='/')return u;const m=[['https://kieai.redpandaai.co/api','/cs-proxy/kieupload'],['https://api.kie.ai','/cs-proxy/kie'],['https://api.laozhang.ai','/cs-proxy/laozhang'],['https://queue.fal.run','/cs-proxy/falqueue'],['https://fal.run','/cs-proxy/fal'],['https://api.fashn.ai','/cs-proxy/fashn'],['https://generativelanguage.googleapis.com','/cs-proxy/google'],['https://api.anthropic.com','/cs-proxy/anthropic']];for(let i=0;i<m.length;i++){if(u.indexOf(m[i][0])===0)return m[i][1]+u.slice(m[i][0].length);}return u;}
-function px(u){return csProxy(u);}
+function px(u){return KEYS.proxy?(KEYS.proxy.replace(/\/+$/,'')+'/?url='+encodeURIComponent(u)):u;}
 function applyTheme(){document.body.classList.toggle('dark',theme==='dark');const b=document.getElementById('themeBtn');if(b)b.textContent=(theme==='dark'?'☀ Claro':'◐ Escuro');}
 function toggleTheme(){theme=(theme==='dark'?'light':'dark');applyTheme();save();}
 function wipe(){if(!confirm('Limpar TODO o canvas dos 3 estúdios (produtos, fotos e vídeos gerados)? Suas chaves de API continuam salvas. Não dá pra desfazer.'))return;try{localStorage.removeItem(LSK);}catch(_){}WS={estudio:{products:[],images:[],videos:[],links:[],finals:[]},moda:{products:[],images:[],videos:[],links:[],finals:[]},acessorios:{products:[],images:[],videos:[],links:[],finals:[]}};MODE='estudio';S=WS.estudio;ic=vc=pc=fc=0;photos=[];curName="";location.reload();}
@@ -505,7 +505,7 @@ function renderModaOptions(){center.innerHTML=`<div class="card-c"><h3>Como gera
     <div style="font-size:11px;color:var(--mut2);margin-top:7px;line-height:1.55"><b style="color:var(--mut)">3:4</b> retrato e-commerce (recomendado) · <b style="color:var(--mut)">1:1</b> Shopee · <b style="color:var(--mut)">9:16</b> Stories/Reels</div></div>
   <div class="rowbtns" style="margin-top:8px"><button class="btn sec" onclick="${curModaNiche==='joia'?'renderModaJoia()':'renderModaNiche()'}">← Voltar</button><button class="btn acc" onclick="startGenModa()">Gerar · ${(curModaPack||5)*CRED.modaLook} créditos →</button></div></div>`;}
 function setModaOpt(k,v){const mi=document.getElementById('modaModelInp');if(mi)curModaModel=mi.value;if(k==='g')curModaGender=v;if(k==='pack')curModaPack=v;if(k==='asp')curModaAspect=v;renderModaOptions();}
-function startGenModa(){const mi=document.getElementById('modaModelInp');if(mi)curModaModel=mi.value.trim();if(!KEYS.fashn){alert('Motor de Moda indisponível no momento.');return;}center.style.cssText=addMode?`position:fixed;inset:52px 0 0 0;z-index:40;background:transparent;display:grid`:'';center.innerHTML=`<div style="display:flex;gap:13px;align-items:center;color:var(--mut)"><div class="spin"></div> diretor de moda preparando os looks…</div>`;runModa();}
+function startGenModa(){const mi=document.getElementById('modaModelInp');if(mi)curModaModel=mi.value.trim();if(!KEYS.fashn){alert('Configure a chave do Motor de Moda em Chaves & Config em Chaves & Config.');goStation('chaves',null);return;}center.style.cssText=addMode?`position:fixed;inset:52px 0 0 0;z-index:40;background:transparent;display:grid`:'';center.innerHTML=`<div style="display:flex;gap:13px;align-items:center;color:var(--mut)"><div class="spin"></div> diretor de moda preparando os looks…</div>`;runModa();}
 async function analyzeProd(){const fb={produto:curName,cor:''};try{if(!KEYS.anthropic||!photos.length)return fb;
   const content=photos.map(p=>({type:"image",source:{type:"base64",media_type:p.mime,data:p.b64}}));
   content.push({type:"text",text:`Olhe a(s) foto(s) do produto (herói: "${curName}"). Responda SÓ JSON, sem texto fora: {"produto":"short English name of the product","cor":"the exact main color(s) in English"}`});
@@ -870,19 +870,19 @@ async function qkGo(kind){if(qkBusy)return;if(!qkB64)return alert('Sobe a foto d
     if(kind==='foto'){if(!needCred(CRED.imgPremium,'foto única'))return;qkBusy=true;qkMsg('Gerando sua Foto Pro… (até 2 min)','var(--orange)');
       const r=await imgEngine({prompt:'Professional premium e-commerce hero photo of '+nm+' shown in the reference image. Keep the product 100% identical: same shape, colors, label, materials and details. Elegant studio lighting, clean seamless light background, soft realistic shadow, advertising quality, high resolution. No people, no text.',image_urls:[qkB64],num_images:1,aspect_ratio:'1:1',output_format:'jpeg',resolution:'2K'});
       const u=r&&r.images&&r.images[0]&&r.images[0].url;if(!u)throw new Error('sem imagem');qkShow(u,false,'foto-pro.jpg');qkMsg('Foto Pro pronta.');}
-    else if(kind==='look'){if(!KEYS.fashn)return alert('Motor de Moda indisponível no momento.');if(!needCred(CRED.modaLook,'look único'))return;qkBusy=true;qkMsg('Vestindo seu produto na modelo… (até 2 min)','var(--orange)');
+    else if(kind==='look'){if(!KEYS.fashn)return alert('Configure a chave do Motor de Moda em Chaves & Config.');if(!needCred(CRED.modaLook,'look único'))return;qkBusy=true;qkMsg('Vestindo seu produto na modelo… (até 2 min)','var(--orange)');
       const g=pp==='homem'?'masculino':pp==='mulher'?'feminino':'';
       const u=await fashnProductToModel(qkB64,fashnSlotPromptFrom({modaName:nm,modaColor:'',modaGender:g,modaNiche:nc},0),'3:4',Math.floor(Math.random()*4000000000));
       if(!u)throw new Error('sem look');qkShow(u,false,'look-moda.jpg');qkMsg('Look pronto.');}
     else if(kind==='vid'){if(!needCred(CRED.vidProd5Fast,'vídeo único'))return;qkBusy=true;qkMsg('Gerando seu vídeo… (~1 a 2 min)','var(--orange)');
       const prompt=FIDELITY_PROD+'The hero product is '+nm+'. Keep the framing and focus on '+nm+' the whole time. '+PRODUCT_FMTS[0].prompt;let out;
-      out=await vidGen({prompt,image:qkB64,duration:'5',ratio:'9:16',audio:false,model:LZ_SEEDANCE});
+      out=await vidCascade({lzArgs:{prompt,image:qkB64,duration:'5',ratio:'9:16',audio:false,model:LZ_SEEDANCE},kieArgs:{prompt,image:qkB64,audio:false,ratio:'9:16',dur:'5'},beArgs:{prompt,image_url:qkB64,resolution:'720p',aspect_ratio:'9:16',duration:'5',generate_audio:false,negative_prompt:VIDEO_NEGATIVE}});
       const u=out&&out.video&&out.video.url;if(!u)throw new Error('sem vídeo');qkShow(u,true,'video-produto.mp4');qkMsg('Vídeo pronto.');}
     else if(kind==='ugc'){if(!needCred(CRED.ugc5Fast,'UGC único'))return;qkBusy=true;qkMsg('Gerando seu UGC… (~1 a 2 min)','var(--orange)');
       const d=await describeForUGC(qkB64,persona,'5');const per=(d&&d.persona)||(persona!=='auto'?persona:'woman');const fala=(d&&d.fala)?d.fala:'';
       const speak=fala?(' The creator speaks this line in Brazilian Portuguese at a natural, unhurried conversational pace, starting to talk right away and finishing comfortably before the clip ends, with lip movement accurately synced to each word: "'+fala+'". The mouth moves naturally and matches the words — no silent staring, no rushing, no repeating.'):' The creator looks at the camera and says one natural sentence in Brazilian Portuguese about the product, unhurried, lip movement synced.';
       const t2v=buildUGCPrompt(d,nm,PERSON_FMTS[0].prompt,speak);let out;
-      out=await vidGen({prompt:t2v,images:[qkB64],role:'reference_image',duration:'5',ratio:'9:16',audio:true,model:LZ_SEEDANCE});
+      out=await vidCascade({lzArgs:{prompt:t2v,images:[qkB64],role:'reference_image',duration:'5',ratio:'9:16',audio:true,model:LZ_SEEDANCE},kieArgs:{prompt:t2v,images:[qkB64],audio:true,ratio:'9:16',dur:'5'},beArgs:{prompt:t2v,image_url:qkB64,resolution:'720p',aspect_ratio:'9:16',duration:'5',generate_audio:true}});
       const u=out&&out.video&&out.video.url;if(!u)throw new Error('sem vídeo');qkShow(u,true,'video-ugc.mp4');qkMsg('UGC pronto.');}
   }catch(err){console.warn('geração rápida falhou:',(err&&err.message)||err);qkMsg('Não consegui gerar agora — tente novamente.','#c2410c');}
   finally{qkBusy=false;}}
@@ -969,7 +969,7 @@ function copyTit(i,btn){const txt=_titClips[i]||'';const ok=()=>{const o=btn.tex
   else{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(_){}ta.remove();ok();}}
 function closeTit(){document.getElementById('titwrap').classList.remove('on');}
 
-async function falRun(model,input){if(!KEYS.fal)throw new Error('Motor fal.ai indisponível');
+async function falRun(model,input){if(!KEYS.fal){showGate();throw new Error('Conecte a chave fal.ai');}
   let j=null,last='';
   for(let a=0;a<4;a++){let sub;try{sub=await fetch(px(`https://queue.fal.run/${model}`),{method:'POST',headers:{Authorization:'Key '+KEYS.fal,'Content-Type':'application/json'},body:JSON.stringify(input)});}catch(net){last='fal sem resposta: '+((net&&net.message)||net);await new Promise(r=>setTimeout(r,2000*(a+1)));continue;}
     const txt=await sub.text();try{j=JSON.parse(txt);}catch(_){j=null;}
@@ -980,13 +980,13 @@ async function falRun(model,input){if(!KEYS.fal)throw new Error('Motor fal.ai in
   if(!j)throw new Error(last||'fal: submit falhou');
   if(j.images||j.video)return j;
   if(!j.status_url||!j.response_url)throw new Error(last||(j.detail?(typeof j.detail==='string'?j.detail:JSON.stringify(j.detail)):(j.error||'fal: submit sem status_url')));
-  for(let i=0;i<170;i++){await new Promise(r=>setTimeout(r,2000));let st;try{st=await(await fetch(px(j.status_url),{headers:{Authorization:'Key '+KEYS.fal}})).json();}catch(_){continue;}
+  for(let i=0;i<170;i++){await new Promise(r=>setTimeout(r,2000));let st;try{st=await(await fetch(j.status_url,{headers:{Authorization:'Key '+KEYS.fal}})).json();}catch(_){continue;}
     if(st.status==='COMPLETED')break;if(st.status==='FAILED'||st.status==='ERROR')throw new Error('fal: geração falhou ('+(st.error||'')+')');}
-  const out=await(await fetch(px(j.response_url),{headers:{Authorization:'Key '+KEYS.fal}})).json();
+  const out=await(await fetch(j.response_url,{headers:{Authorization:'Key '+KEYS.fal}})).json();
   if(out&&(out.images||out.video))return out;
   throw new Error('fal: resposta sem imagem'+(out&&out.detail?(' — '+(typeof out.detail==='string'?out.detail:JSON.stringify(out.detail))):' (tente de novo)'));}
 async function lzPost(path,body,key){const K=key||KEYS.laozhang;let last='';
-  for(let a=0;a<3;a++){let resp;try{resp=await fetch(px(LZ_BASE+path),{method:"POST",headers:Object.assign(lzAuthHdr(K),{"Content-Type":"application/json"}),body:JSON.stringify(body)});}
+  for(let a=0;a<3;a++){let resp;try{resp=await fetch(px(LZ_BASE+path),{method:"POST",headers:{Authorization:"Bearer "+K,"Content-Type":"application/json"},body:JSON.stringify(body)});}
     catch(net){last='laozhang sem resposta (rede/CORS): '+((net&&net.message)||net);await new Promise(r=>setTimeout(r,2000));continue;}
     const txt=await resp.text();let j=null;try{j=JSON.parse(txt);}catch(_){}
     if(resp.ok&&j)return j;
@@ -1003,82 +1003,32 @@ async function lzNanoPro({prompt,image_urls,aspect}){const key=KEYS.lzNano||KEYS
   const j=await lzPost("/images/generations",body,key);const d=j.data&&j.data[0];const url=d&&(d.url||(d.b64_json?("data:image/png;base64,"+d.b64_json):null));
   if(!url)throw new Error((j.error&&(j.error.message||j.error))||j.message||'laozhang Nano Pro: resposta sem URL');return {images:[{url}]};}
 const SEEDANCE_BASE="https://api.laozhang.ai/seedance/api/v3";
-const LZ_COOLDOWN_MS=10*60*1000;
-const LZ_NETWORK_COOLDOWN_MS=3*60*1000;
-let lzCooldownUntil=0,lzCooldownReason='',lzNetworkUntil=0,lzNetworkReason='';
-function lzAuthHdr(key){const h={};if(KEYS.proxy)h.Authorization='Bearer '+key;return h;}
-function lzSkip(){return Date.now()<lzCooldownUntil||Date.now()<lzNetworkUntil;}
-function lzSkipReason(){return Date.now()<lzCooldownUntil?lzCooldownReason:(Date.now()<lzNetworkUntil?lzNetworkReason:'')}
-function lzTrip(reason){lzCooldownUntil=Date.now()+LZ_COOLDOWN_MS;lzCooldownReason=reason||'sem saldo';
-  try{console.warn('Lao em cooldown ('+Math.round(LZ_COOLDOWN_MS/60000)+'min): '+lzCooldownReason);}catch(_){}
-  const human=/额度|quota|用尽|insufficient/i.test(reason||'')?'Laozhang sem crédito — recarregue no painel laozhang.ai ou troque a chave API.':'Laozhang indisponível';
-  try{log(`<div class="msg">⚠ ${human} Usando FAL/Kie por ${Math.round(LZ_COOLDOWN_MS/60000)} min.</div>`,'raw');}catch(_){}}
-function lzNetworkTrip(reason){lzNetworkUntil=Date.now()+LZ_NETWORK_COOLDOWN_MS;lzNetworkReason=reason||'conexão instável';
-  try{console.warn('Lao instável — FAL/Kie direto por '+Math.round(LZ_NETWORK_COOLDOWN_MS/60000)+'min:',lzNetworkReason);}catch(_){}}
-function isLzQuotaError(status,body){
-  const errType=(body&&body.error&&body.error.type)||'';
-  const code=(body&&(body.code||(body.error&&body.error.code)))||'';
-  const msg=((body&&(body.message||(body.error&&(body.error.message||body.error))))||'').toString();
-  const msgL=msg.toLowerCase();
-  if(status===402||status===403)return true;
-  if(status===401&&(/额度|quota|shell_api_error/i.test(msg)||errType==='shell_api_error'))return true;
-  if(typeof code==='string'&&(code==='insufficient_quota'||code==='insufficient_balance'||code==='quota_exceeded'))return true;
-  if(typeof code==='number'&&(code===402||code===403))return true;
-  return /insufficient.?(quota|balance|funds|credit)|exceed(ed)? .*quota|need\s+\d+|saldo|out of (credit|quota)|额度已用尽|额度.*用尽/i.test(msgL+msg);
-}
-async function lzPrepFrame(u){
-  if(!u)return u;
-  if(/^https?:\/\//i.test(u))return u;
-  try{
-    if(/^data:image\//.test(u)){
-      const norm=await inNormalizeImage(u,720,.72);
-      if(norm.length>100000){
-        try{const r=await fetch('/api/media/lz-frame',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({dataUrl:norm})});
-          if(r.ok){const j=await r.json();if(j&&j.url)return j.url;}
-          if(KEYS.kie){try{return await kieUpload(norm);}catch(_){}}}catch(_){if(KEYS.kie){try{return await kieUpload(norm);}catch(_){}}}
-      }
-      return norm;
-    }
-    const blob=await(await fetch(px(u))).blob();
-    if((blob.type||'').startsWith('image/')){
-      const b64=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;fr.readAsDataURL(blob);});
-      return await lzPrepFrame(b64);
-    }
-    return u;
-  }catch(_){return u;}}
 async function lzVideo({prompt,image,images,duration,ratio,audio,model,role}){
-  if(lzSkip())throw Object.assign(new Error('laozhang em cooldown: '+lzSkipReason()),{lzSkipped:true});
   const isSora=(model===LZ_SORA);const key=(isSora&&KEYS.lzSora)?KEYS.lzSora:KEYS.laozhang;
   let createUrl,pollBase,reqInit;
   if(isSora){createUrl=LZ_BASE+"/videos";pollBase=LZ_BASE+"/videos/";
     const fd=new FormData();fd.append('model','sora-2');fd.append('prompt',prompt);fd.append('seconds',((parseInt(duration)||5)<=6?'4':'8'));fd.append('size',ratio==='16:9'?'1280x720':ratio==='1:1'?'720x720':'720x1280');
     if(image){try{const ib=await(await fetch(px(image))).blob();fd.append('input_reference',ib,'ref.png');}catch(_){}}
-    reqInit={method:"POST",headers:lzAuthHdr(key),body:fd};}
+    reqInit={method:"POST",headers:{Authorization:"Bearer "+key},body:fd};}
   else{createUrl=SEEDANCE_BASE+"/contents/generations/tasks";pollBase=SEEDANCE_BASE+"/contents/generations/tasks/";
-    const content=[{type:"text",text:prompt}];const _raw=(images&&images.length)?images:(image?[image]:[]);
-    const _imgs=[];for(const u of _raw.filter(Boolean)){_imgs.push(await lzPrepFrame(u));}
-    _imgs.forEach(u=>content.push({type:"image_url",image_url:{url:u},role:role||"first_frame"}));
+    const content=[{type:"text",text:prompt}];const _imgs=(images&&images.length)?images:(image?[image]:[]);_imgs.forEach(u=>content.push({type:"image_url",image_url:{url:u},role:role||"first_frame"}));
     const body={model:model||LZ_SEEDANCE,content,ratio:ratio||"9:16",duration:parseInt(duration)||5,resolution:"720p",watermark:false,generate_audio:!!audio};
-    reqInit={method:"POST",headers:Object.assign(lzAuthHdr(key),{"Content-Type":"application/json","Accept":"application/json"}),body:JSON.stringify(body)};}
+    reqInit={method:"POST",headers:{Authorization:"Bearer "+key,"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(body)};}
   let j=null,last='';
-  for(let a=0;a<1;a++){let resp;try{resp=await fetch(px(createUrl),reqInit);}catch(net){last='laozhang sem resposta (rede/CORS): '+((net&&net.message)||net);await new Promise(r=>setTimeout(r,2000));continue;}
+  for(let a=0;a<3;a++){let resp;try{resp=await fetch(px(createUrl),reqInit);}catch(net){last='laozhang sem resposta (rede/CORS): '+((net&&net.message)||net);await new Promise(r=>setTimeout(r,2000));continue;}
     const txt=await resp.text();try{j=JSON.parse(txt);}catch(_){j=null;}
     if(resp.ok&&j)break;
-    last='laozhang '+resp.status+': '+(((j&&j.error&&(j.error.message||j.error))||(j&&j.message))||txt.slice(0,180)||'sem corpo');
-    if(isLzQuotaError(resp.status,j)){lzTrip(((j&&(j.message||(j.error&&(j.error.message||j.error))))||('HTTP '+resp.status)).toString().slice(0,140));j=null;throw Object.assign(new Error(last),{lzQuota:true});}
-    if(resp.status===503&&(j&&j.transient)){throw Object.assign(new Error('laozhang indisponível (rede)'),{lzTransient:true});}
-    j=null;
-    if(resp.status===429){await new Promise(r=>setTimeout(r,2500));continue;}
+    last='laozhang '+resp.status+': '+(((j&&j.error&&(j.error.message||j.error))||(j&&j.message))||txt.slice(0,180)||'sem corpo');j=null;
+    if(resp.status===502||resp.status===503||resp.status===429){await new Promise(r=>setTimeout(r,2500));continue;}
     throw new Error(last);}
   if(!j)throw new Error(last||'laozhang: criação falhou');
   const id=j.id||j.task_id||(j.data&&j.data.id);if(!id)throw new Error('laozhang: submit sem id — '+(((j.error&&(j.error.message||j.error))||j.message)||'cobrança/acesso ao grupo?'));
-  const _markCharged=(e)=>{try{e.lzCharged=true;e.lzTaskId=id;}catch(_){}throw e;};
-  let nf=0;for(let i=0;i<200;i++){await new Promise(r=>setTimeout(r,3000));let resp,st;try{const ac=new AbortController();const tm=setTimeout(()=>ac.abort(),15000);resp=await fetch(px(pollBase+id),{headers:Object.assign(lzAuthHdr(key),{"Accept":"application/json"}),signal:ac.signal});clearTimeout(tm);st=await resp.json();}catch(_){continue;}
-    if(resp&&resp.status===404){if(++nf>6)_markCharged(new Error('laozhang: tarefa '+id+' não encontrada (endpoint/grupo?)'));continue;}
+  let nf=0;for(let i=0;i<200;i++){await new Promise(r=>setTimeout(r,3000));let resp,st;try{resp=await fetch(px(pollBase+id),{headers:{Authorization:"Bearer "+key,"Accept":"application/json"}});st=await resp.json();}catch(_){continue;}
+    if(resp&&resp.status===404){if(++nf>6)throw new Error('laozhang: tarefa '+id+' não encontrada (endpoint/grupo?)');continue;}
     const s=((st.status||'')+'').toLowerCase();
     if(s==='succeeded'||s==='completed'||s==='success'){const url=(st.content&&st.content.video_url)||st.video_url||st.url||(st.data&&(st.data.video_url||st.data.url));if(url)return{video:{url}};}
-    if(s==='failed'||s==='error'||s==='expired')_markCharged(new Error('laozhang: geração '+s+' ('+((st.error&&(st.error.message||st.error))||'')+')'));}
-  _markCharged(new Error('laozhang: timeout'));}
+    if(s==='failed'||s==='error'||s==='expired')throw new Error('laozhang: geração '+s+' ('+((st.error&&(st.error.message||st.error))||'')+')');}
+  throw new Error('laozhang: timeout');}
 async function genImg(im){const cost=(im.moda)?CRED.modaLook:((im.tier==='basico')?CRED.imgBasico:CRED.imgPremium);if(!needCred(cost,'imagem '+(im.tier||'premium'))){im.fail='Sem créditos';replaceNode(im.id,imgHtml(im));return;}im.url=null;im.fail=null;replaceNode(im.id,imgHtml(im));log(tool('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;display:inline-block"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="9" cy="9" r="1.3"/></svg>','g',`${im.moda?'Moda · '+((im.title||'look').toLowerCase()):(im.tier==='basico'?'IA.Clip Básico':'IA.Clip Pro')+' · '+im.title.toLowerCase()}`,'run'),'raw');const r=lastRun();
   if(im.moda){try{const murl=await fashnProductToModel(im.modaProdB64||(im.refs&&im.refs[0]),im.prompt,im.aspect,im.modaSeed);im.url=murl;replaceNode(im.id,imgHtml(im));if(r){r.className='st done';r.textContent='done';}save();}catch(e){im.fail=(e&&e.message)||e;replaceNode(im.id,imgHtml(im));if(r){r.className='st fail';r.textContent='fail';}}return;}
   try{const fp=IMG_FIDELITY+im.prompt+(im.onmodel?PERSON_REALISM:'');let out;
@@ -1158,7 +1108,7 @@ async function googleImage(inp){if(!KEYS.google)throw new Error('sem chave Googl
   for(const u of (inp.image_urls||[]).filter(Boolean)){let mime='image/png',b64=u;const m=/^data:([^;]+);base64,(.*)$/.exec(u);
     if(m){mime=m[1];b64=m[2];}else{const blob=await(await fetch(px(u))).blob();mime=blob.type||'image/png';b64=await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(String(fr.result).split(',')[1]);fr.readAsDataURL(blob);});}
     parts.push({inline_data:{mime_type:mime,data:b64}});}
-  const ep='https://generativelanguage.googleapis.com/v1beta/models/'+GOOGLE_IMG_MODEL+':generateContent';
+  const ep='https://generativelanguage.googleapis.com/v1beta/models/'+GOOGLE_IMG_MODEL+':generateContent?key='+encodeURIComponent(KEYS.google);
   const j=await(await fetch(px(ep),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts}]})})).json();
   const ps=(((j||{}).candidates||[])[0]||{}).content&&j.candidates[0].content.parts||[];
   for(const p of ps){const id=p.inline_data||p.inlineData;if(id&&id.data)return{images:[{url:'data:'+(id.mime_type||id.mimeType||'image/png')+';base64,'+id.data}]};}
@@ -1202,55 +1152,38 @@ async function describeForUGC(imageUrl,personaPref,dur){
   }catch(_){return null;}
 }
 async function falKling({prompt,image_url,dur,aspect}){return await falRun('fal-ai/kling-video/v2.5-turbo/standard/image-to-video',{prompt:prompt||'',image_url:image_url,duration:String(dur||'5'),aspect_ratio:aspect||'9:16'});}
-async function retryVid(fn){return await fn();}
-async function vidGen(p){let last=null;
-  const imgUrl=(p.images&&p.images.length)?p.images[0]:p.image;
-  const lzP=Object.assign({},p,{image:imgUrl,images:p.images?[imgUrl]:undefined});
-  const dur=String(parseInt(p.duration||p.dur)||5);
-  const falInp={prompt:p.prompt,image_url:imgUrl,resolution:'720p',aspect_ratio:p.ratio||'9:16',duration:dur,generate_audio:p.audio===true};
-  const tryFal=async()=>{return await vidEngine(falInp);};
-  const tryLz=async()=>{return await lzVideo(lzP);};
-  const tryKie=async()=>{return await kieVideo({prompt:p.prompt,image:p.image,images:p.images,audio:p.audio,ratio:p.ratio,dur:p.dur||p.duration});};
-  const order=[['laozhang',tryLz],['fal',tryFal],['kie',tryKie]];
-  for(const [name,fn] of order){
-    if(name==='laozhang'){
-      if(lzSkip()){try{console.warn('Lao em cooldown — pulando ('+lzSkipReason()+')');}catch(_){}continue;}
-      if((p.model===LZ_SORA)?!(KEYS.lzSora||KEYS.laozhang):!KEYS.laozhang)continue;
-    }
-    if(name==='fal'&&!(KEYS.fal||KEYS.vidbk))continue;
-    if(name==='kie'&&!KEYS.kie)continue;
-    try{return await fn();}
-    catch(e){last=e;try{console.warn('motor de vídeo ('+name+') falhou:',(e&&e.message)||e);}catch(_){}
-      if(name==='laozhang'&&e&&e.lzCharged){lzTrip('task '+(e.lzTaskId||'?')+' criada mas falhou');throw e;}}}
-  throw last||new Error('nenhum motor de vídeo disponível');}
-async function runVid(v,anchor){
-  if(v.__running){try{console.warn('runVid: '+v.id+' já em execução — ignorando clique duplo');}catch(_){}return;}
-  v.__running=true;
-  const isUGC=v.audio!==false;const tier=v.tier||'basico';const model=(tier==='premium')?LZ_SORA:LZ_SEEDANCE;const lbl=(tier==='premium')?'IA.Clip Vídeo Pro':'IA.Clip Vídeo';
+async function retryVid(fn){let e;for(let i=0;i<3;i++){try{return await fn();}catch(err){e=err;const m=(((err&&err.message)||err)+'').toLowerCase();const transient=/(overdue|429|rate|500|502|503|504|sem resposta|rede|cors|submit|grupo|expired|encontrada|channel)/.test(m);const timeout=/timeout/.test(m);if(!transient&&!timeout)throw err;if(timeout&&i>=1)throw err;await new Promise(r=>setTimeout(r,2500));}}throw e;}
+async function vidCascade(opts){
+  // laozhang é mais barato E mais rápido -> sempre motor principal; Kie = reserva; backend/fal = última rede
+  const haveLz=!!KEYS.laozhang, haveKie=!!KEYS.kie;
+  if(haveLz){try{return await retryVid(()=>lzVideo(opts.lzArgs));}catch(e1){if(!haveKie)throw e1;console.warn('motor principal (laozhang) falhou, reserva Kie:',(e1&&e1.message)||e1);return await kieVideo(opts.kieArgs);}}
+  if(haveKie)return await kieVideo(opts.kieArgs);
+  return await retryVid(()=>vidEngine(opts.beArgs));
+}
+async function runVid(v,anchor){const isUGC=v.audio!==false;const tier=v.tier||'basico';const model=(tier==='premium')?LZ_SORA:LZ_SEEDANCE;const lbl=(tier==='premium')?'IA.Clip Vídeo Pro':'IA.Clip Vídeo';
   log(tool(IC.video,'v',`${lbl} · ${v.format} · ${v.dur||'5'}s`,'run'),'raw');const r=lastRun();
   try{let out;
-    if(v.modaCine){
-      if(KEYS.fal){try{out=await falKling({prompt:v.fmtPrompt,image_url:v.srcUrl,dur:v.dur||'5',aspect:v.aspect||'9:16'});}
-        catch(e1){console.warn('vídeo moda (Kling) falhou, tentando cascata:',(e1&&e1.message)||e1);out=await vidGen({prompt:v.fmtPrompt,image:v.srcUrl,duration:v.dur||'5',ratio:v.aspect||'9:16',audio:false,model:LZ_SEEDANCE});}}
-      else{out=await vidGen({prompt:v.fmtPrompt,image:v.srcUrl,duration:v.dur||'5',ratio:v.aspect||'9:16',audio:false,model:LZ_SEEDANCE});}}
+    if(v.modaCine){out=await retryVid(()=>falKling({prompt:v.fmtPrompt,image_url:v.srcUrl,dur:v.dur||'5',aspect:v.aspect||'9:16'}));}
     else if(isUGC){
         const p=prodOf(v);
         const refImgs=(p?S.images.filter(im=>{const q=prodOf(im);return q&&q.id===p.id&&!im.onmodel&&im.url;}):[]).map(im=>im.url).slice(0,2);
         const refs=v.ugcRef?[v.ugcRef]:(refImgs.length?refImgs:[v.srcUrl]);
         const d=await describeForUGC(refs[0],ugcPersona,v.dur||'5');
+        const persona=(d&&d.persona)||((ugcPersona&&ugcPersona!=='auto')?ugcPersona:'woman');
         const fala=(d&&d.fala)?d.fala:'';
         const speak=fala?(' The creator speaks this line in Brazilian Portuguese at a natural, unhurried conversational pace, starting to talk right away and finishing comfortably before the clip ends, with lip movement accurately synced to each word: "'+fala+'". The mouth moves naturally and matches the words — no silent staring, no rushing, no repeating.'):' The creator looks at the camera and says one natural sentence in Brazilian Portuguese about the product, unhurried, lip movement synced.';
         const t2v=buildUGCPrompt(d,(prodOf(v)&&prodOf(v).name)||'the product',v.fmtPrompt,speak);
-        out=await vidGen({prompt:t2v,images:refs,role:'reference_image',duration:v.dur||'5',ratio:v.aspect||'9:16',audio:true,model:LZ_SEEDANCE});
+        out=await vidCascade({
+          lzArgs:{prompt:t2v,images:refs,role:'reference_image',duration:v.dur||'5',ratio:v.aspect||'9:16',audio:true,model:LZ_SEEDANCE},
+          kieArgs:{prompt:t2v,images:refs,audio:true,ratio:v.aspect||'9:16',dur:v.dur||'5'},
+          beArgs:{prompt:t2v,image_url:refs[0],resolution:'720p',aspect_ratio:v.aspect||'9:16',duration:v.dur||'5',generate_audio:true}});
       }
-    else{out=await vidGen({prompt:v.fmtPrompt,image:v.srcUrl,duration:v.dur||'5',ratio:v.aspect||'9:16',audio:false,model});}
+    else{out=await vidCascade({
+        lzArgs:{prompt:v.fmtPrompt,image:v.srcUrl,duration:v.dur||'5',ratio:v.aspect||'9:16',audio:false,model},
+        kieArgs:{prompt:v.fmtPrompt,image:v.srcUrl,audio:false,ratio:v.aspect||'9:16',dur:v.dur||'5'},
+        beArgs:(()=>{const inp={prompt:v.fmtPrompt,image_url:v.srcUrl,resolution:'720p',aspect_ratio:v.aspect||'9:16',duration:v.dur||'5',generate_audio:false};if(anchor)inp.end_image_url=v.srcUrl;if(!v.modaCine)inp.negative_prompt=VIDEO_NEGATIVE;return inp;})()});}
     const _vu=out&&out.video&&out.video.url;if(!_vu)throw new Error('o motor de vídeo não retornou vídeo (tente de novo)');v.url=_vu;replaceNode(v.id,vidHtml(v));if(r){r.className='st done';r.textContent='done';}log(`Vídeo "${v.format}" pronto.`);save();if(v.audio===false)sugerirComercial();}
-  catch(err){try{console.warn('vídeo falhou:',(err&&err.message)||err);}catch(_){}
-    const msg=(err&&err.lzCharged)?('Cobrança da Lao já aconteceu (task '+(err.lzTaskId||'?')+'). Confira no painel antes de tentar de novo.')
-              :(err&&err.lzQuota)?('Laozhang sem saldo. FAL/Kie estão sendo usados como reserva.')
-              :'Geração de vídeo indisponível no momento — tente novamente.';
-    v.fail=msg;replaceNode(v.id,vidHtml(v));if(r){r.className='st fail';r.textContent='fail';}}
-  finally{try{delete v.__running;}catch(_){v.__running=false;}}}
+  catch(err){try{console.warn('vídeo falhou:',(err&&err.message)||err);}catch(_){}v.fail='Geração de vídeo indisponível no momento — tente novamente.';replaceNode(v.id,vidHtml(v));if(r){r.className='st fail';r.textContent='fail';}}}
 async function genVideo(id,fi,kind){const im=S.images.find(x=>x.id===id);if(!im||!im.url)return;pop.style.display='none';
   if(im.moda&&kind==='moda'){const mf=MODA_FMTS[fi];if(!mf)return;if(!needCred(vidCost(curVidDur,false),'vídeo de moda'))return;const _pn=(prodOf(im)&&prodOf(im).name)||'piece';const mva=(['1:1','9:16','16:9'].includes(im.aspect)?im.aspect:'9:16');const msp=childSpot(id,170,Math.round(170*aspRatio(mva))+40+84);const mv={id:'v'+(vc++),parent:id,x:msp.x,y:msp.y,format:mf.format,dur:curVidDur,tier:'basico',aspect:mva,audio:false,modaCine:true,script:'',fmtPrompt:FIDELITY_MODA+'Keep the worn product ('+_pn+') identical and clearly visible the whole time. '+mf.prompt,srcUrl:im.url,url:null,fail:null,sel:false};S.videos.push(mv);S.links.push({from:id,to:mv.id});renderWorld();runVid(mv,true);return;}
   const ugc=(kind==='ugc');const cine=!ugc;const f=(ugc?PERSON_FMTS:PRODUCT_FMTS)[fi];if(!f)return;const cost=vidCost(curVidDur,ugc);if(!needCred(cost,ugc?'vídeo UGC':'vídeo do produto'))return;const va=cine?(['1:1','9:16','16:9'].includes(im.aspect)?im.aspect:'9:16'):'9:16';const sp=childSpot(id,170,Math.round(170*aspRatio(va))+40+84);
