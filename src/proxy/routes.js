@@ -6,17 +6,17 @@
 import { Router } from 'express';
 import https from 'node:https';
 import { URL } from 'node:url';
-import { shrinkLaozhangSeedanceBody } from '../media/lzFrame.js';
+import { saveDataUriFrame } from '../media/lzFrame.js';
+import { shrinkLaozhangSeedanceBody } from '../media/kieFramePublish.js';
 
 export const proxyRouter = Router();
 
 const DEFAULT_UPSTREAM_TIMEOUT_MS = 25000;
 const LAOZHANG_UPSTREAM_TIMEOUT_MS = Number(process.env.LAOZHANG_UPSTREAM_TIMEOUT_MS) || 600000;
-// createTask saudável responde em 2–10s; a laozhang às vezes trava a conexão
-// sem responder, deixando o cliente pendurado. Prazo curto aqui faz o canvas
-// cair rápido para o motor reserva (Kie) em vez de esperar 10 min.
 const LAOZHANG_CREATE_TIMEOUT_MS = Number(process.env.LAOZHANG_CREATE_TIMEOUT_MS) || 90000;
+const LAOZHANG_POLL_TIMEOUT_MS = Number(process.env.LAOZHANG_POLL_TIMEOUT_MS) || 15000;
 const LAOZHANG_RETRY_DELAYS_MS = [0, 2000, 5000, 10000];
+const LAOZHANG_CREATE_RETRY_DELAYS_MS = [0, 2500];
 
 const TARGETS = {
   anthropic: 'https://api.anthropic.com',
@@ -33,6 +33,10 @@ const TARGETS = {
   kieupload: 'https://kieai.redpandaai.co/api',
   laozhang: 'https://api.laozhang.ai',
   google: 'https://generativelanguage.googleapis.com',
+  evolink: 'https://api.evolink.ai',
+  piapi: 'https://api.piapi.ai',
+  // alvo dinâmico via SUPABASE_URL
+  supabase: 'https://placeholder.supabase.co',
 };
 
 const KEY_MAP = {
@@ -50,7 +54,14 @@ const KEY_MAP = {
   kieupload: 'KIE_API_KEY',
   laozhang: 'LAOZHANG_API_KEY',
   google: 'GEMINI_API_KEY',
+  evolink: 'EVOLINK_API_KEY',
+  piapi: 'PIAPI_API_KEY',
+  supabase: 'SUPABASE_ANON_KEY',
 };
+
+function resolveSupabaseBase() {
+  return String(process.env.SUPABASE_URL || '').trim().replace(/\/+$/, '');
+}
 
 function pickLaozhangKey(bodyText) {
   let model = '';
@@ -87,6 +98,16 @@ function injectAuth(provider, headers, bodyText) {
     delete headers['Authorization'];
     return { ok: true, queryKey: key };
   }
+  if (provider === 'supabase') {
+    const key = process.env.SUPABASE_ANON_KEY || '';
+    if (!key || !resolveSupabaseBase()) return { ok: false };
+    delete headers['authorization'];
+    delete headers['Authorization'];
+    delete headers['apikey'];
+    headers['Authorization'] = `Bearer ${key}`;
+    headers['apikey'] = key;
+    return { ok: true };
+  }
   const key = process.env[KEY_MAP[provider]];
   if (!key) return { ok: false };
   delete headers['authorization'];
@@ -104,7 +125,11 @@ function injectAuth(provider, headers, bodyText) {
     case 'fashn':
     case 'kie':
     case 'kieupload':
+    case 'evolink':
       headers['Authorization'] = `Bearer ${key}`;
+      break;
+    case 'piapi':
+      headers['X-API-Key'] = key;
       break;
     case 'fal':
     case 'falai':
@@ -147,12 +172,19 @@ proxyRouter.get('/keys/status', (_req, res) => {
   }
   status.laozhang_image = !!process.env.LAOZHANG_IMAGE_API_KEY;
   status.laozhang_sora = !!process.env.LAOZHANG_SORA_API_KEY;
+  status.supabase_url = !!process.env.SUPABASE_URL;
   res.json(status);
 });
 
 for (const provider of Object.keys(TARGETS)) {
   proxyRouter.all(`/${provider}/*`, async (req, res) => {
-    const targetBase = TARGETS[provider];
+    let targetBase = TARGETS[provider];
+    if (provider === 'supabase') {
+      targetBase = resolveSupabaseBase();
+      if (!targetBase) {
+        return res.status(400).json({ error: 'SUPABASE_URL não configurada no servidor.' });
+      }
+    }
     const path = req.params[0] || '';
     const qIdx = req.url.indexOf('?');
     const search = qIdx >= 0 ? req.url.slice(qIdx) : '';
@@ -173,6 +205,15 @@ for (const provider of Object.keys(TARGETS)) {
     }
     const bodyText = rawBody.length ? rawBody.toString('utf-8') : '';
 
+    if (provider === 'kieupload' && req.method === 'POST' && path.includes('file-base64-upload')) {
+      try {
+        const local = await handleLocalKieUpload(bodyText, req);
+        return res.json(local);
+      } catch (err) {
+        return res.status(400).json({ success: false, code: 400, msg: err.message || 'falha ao publicar imagem' });
+      }
+    }
+
     const authResult = injectAuth(provider, fwdHeaders, bodyText);
     if (!authResult.ok) {
       return res.status(400).json({
@@ -186,9 +227,14 @@ for (const provider of Object.keys(TARGETS)) {
 
     if (provider === 'laozhang' && req.method === 'POST' && path.includes('contents/generations/tasks')) {
       try {
-        rawBody = await shrinkLaozhangSeedanceBody(rawBody, bodyText, req);
+        rawBody = await shrinkLaozhangSeedanceBody(rawBody, bodyText);
       } catch (err) {
         console.warn(`[proxy][laozhang] shrink frame falhou: ${err.message}`);
+        return res.status(502).json({
+          error: `Não consegui publicar o frame para a Laozhang (${err.message}). Tente novamente ou aguarde alguns segundos.`,
+          transient: true,
+          provider: 'laozhang',
+        });
       }
     }
 
@@ -267,6 +313,8 @@ function isTransientUpstreamError(err) {
     || msg.includes('operation was aborted')
     || msg.includes('socket hang up')
     || msg.includes('closed connection')
+    || msg.includes('upstream deadline')
+    || msg.includes('upstream timeout')
     || ['ECONNRESET', 'EPIPE', 'ETIMEDOUT', 'ECONNABORTED'].includes(code)
   );
 }
@@ -279,35 +327,64 @@ function isLaozhangBillablePost(method, url) {
     || u.includes('/images/generations');
 }
 
+function isTransientLaozhangHttpStatus(status) {
+  return status === 429 || status === 500 || status === 502 || status === 503 || status === 504;
+}
+
 async function requestLaozhang(url, fetchOpts, timeoutMs) {
   const billable = isLaozhangBillablePost(fetchOpts.method, url);
-  // createTask: prazo curto — se a laozhang travar sem responder, o canvas
-  // recebe 503 transient rápido e cai para o motor reserva (Kie).
+  const isPoll = fetchOpts.method === 'GET'
+    && String(url).includes('/contents/generations/tasks/');
   if (billable) timeoutMs = Math.min(timeoutMs, LAOZHANG_CREATE_TIMEOUT_MS);
-  const delays = billable ? [0] : LAOZHANG_RETRY_DELAYS_MS;
+  else if (isPoll) timeoutMs = Math.min(timeoutMs, LAOZHANG_POLL_TIMEOUT_MS);
+  const delays = billable ? LAOZHANG_CREATE_RETRY_DELAYS_MS : LAOZHANG_RETRY_DELAYS_MS;
   let lastErr;
+  let lastResp;
   for (let i = 0; i < delays.length; i++) {
     const delay = delays[i];
     if (delay) await new Promise((r) => setTimeout(r, delay));
     try {
-      if (billable && i === 0) {
+      if (billable) {
         const nbytes = fetchOpts.body ? fetchOpts.body.length : 0;
-        console.log(`[proxy][laozhang] createTask POST single-shot (${nbytes}b)`);
+        console.log(`[proxy][laozhang] createTask POST tentativa ${i + 1}/${delays.length} (${nbytes}b)`);
       }
-      return await requestLaozhangFetch(url, fetchOpts, timeoutMs);
+      const resp = await withAbsoluteTimeout(
+        requestLaozhangFetch(url, fetchOpts, timeoutMs),
+        timeoutMs + 2500,
+        `laozhang upstream deadline after ${timeoutMs}ms`,
+      );
+      if (billable && isTransientLaozhangHttpStatus(resp.status) && i < delays.length - 1) {
+        lastResp = resp;
+        console.warn(`[proxy][laozhang] retry ${i + 1} após HTTP ${resp.status}`);
+        continue;
+      }
+      return resp;
     } catch (err) {
       lastErr = err;
+      const msg = String(err.message || err);
+      if (billable && /deadline|upstream timeout/i.test(msg)) throw err;
       const transient = isTransientUpstreamError(err);
       if (!transient || i === delays.length - 1) throw err;
       const nbytes = fetchOpts.body ? fetchOpts.body.length : 0;
       console.warn(`[proxy][laozhang] retry ${i + 1} após ${err.code || err.message} (${nbytes}b)`);
     }
   }
+  if (lastResp) return lastResp;
   throw lastErr;
 }
 
 async function requestLaozhangFetch(url, fetchOpts, timeoutMs) {
   return requestLaozhangHttps(url, fetchOpts, timeoutMs);
+}
+
+function withAbsoluteTimeout(promise, ms, message) {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(message)), ms);
+    promise.then(
+      (v) => { clearTimeout(t); resolve(v); },
+      (e) => { clearTimeout(t); reject(e); },
+    );
+  });
 }
 
 function requestLaozhangHttps(url, fetchOpts, timeoutMs) {
@@ -343,8 +420,9 @@ function requestLaozhangHttps(url, fetchOpts, timeoutMs) {
     // mantiver a conexão viva sem nunca responder, ele não dispara — por isso
     // o prazo absoluto abaixo, que garante erro (→ 503 transient) no prazo.
     const hardDeadline = setTimeout(() => {
-      req.destroy(new Error(`upstream deadline after ${timeoutMs}ms`));
-    }, timeoutMs + 1000);
+      const err = new Error(`upstream deadline after ${timeoutMs}ms`);
+      req.destroy(err);
+    }, timeoutMs + 500);
 
     req.on('timeout', () => {
       req.destroy(new Error(`upstream timeout after ${timeoutMs}ms`));
@@ -357,4 +435,21 @@ function requestLaozhangHttps(url, fetchOpts, timeoutMs) {
     if (hasBody) req.write(fetchOpts.body);
     req.end();
   });
+}
+
+async function handleLocalKieUpload(bodyText, req) {
+  let parsed;
+  try {
+    parsed = JSON.parse(bodyText || '{}');
+  } catch (_) {
+    throw new Error('JSON inválido');
+  }
+  const dataUri = parsed.base64Data || parsed.dataUrl || parsed.image || '';
+  const downloadUrl = await saveDataUriFrame(dataUri, req);
+  return {
+    success: true,
+    code: 200,
+    msg: 'success',
+    data: { downloadUrl, url: downloadUrl },
+  };
 }

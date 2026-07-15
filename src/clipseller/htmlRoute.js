@@ -1,6 +1,7 @@
 /**
- * Serve o clipseller-canvas-v43.html com patches injetados:
- *   1. Reescreve fetches diretos para APIs externas → /cs-proxy/*.
+ * Serve o clipseller-canvas-v46.3.html com patches injetados:
+ *   1. Reescreve fetches diretos para APIs externas → /cs-proxy/*
+ *      (inclui Evolink, PiAPI e Supabase).
  *   2. Remove a etapa "Chaves & Config": o standalone usa as mesmas credenciais
  *      do SellerIA Club no servidor. O browser recebe apenas placeholders para
  *      passar nas validações locais do canvas.
@@ -17,6 +18,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const HTML_CANDIDATES = [
   resolve(__dirname, '../../public/clipseller-html/index.html'),
+  resolve(__dirname, '../../public/clipseller-html/clipseller-canvas-v46.3.html'),
   resolve(__dirname, '../../public/clipseller-html/clipseller-canvas-v31.html'),
 ];
 const HTML_PATH = HTML_CANDIDATES.find((p) => existsSync(p)) || HTML_CANDIDATES[0];
@@ -27,6 +29,7 @@ const BRIDGE = `
   // O ClipSeller standalone nunca pede chaves ao cliente. Estes placeholders
   // existem só para o HTML legado não bloquear a geração; o proxy troca tudo
   // pelas credenciais reais do servidor.
+  var CS_SUPABASE_URL = '__CS_SUPABASE_URL__';
   var SERVER_KEYS = {
     anthropic: 'sk-ant-server-side',
     fal: 'server-side',
@@ -36,6 +39,11 @@ const BRIDGE = `
     lzSora: 'server-side',
     lzImg: 'server-side',
     lzNano: 'server-side',
+    piapi: 'server-side',
+    evolink: 'server-side',
+    sbUrl: CS_SUPABASE_URL || '',
+    sbKey: 'server-side',
+    sbBucket: 'clipseller',
     fashn: 'server-side',
     proxy: ''
   };
@@ -61,7 +69,12 @@ const BRIDGE = `
     ['https://api.replicate.com', '/cs-proxy/replicate'],
     ['https://api.freepik.com', '/cs-proxy/freepik'],
     ['https://api.elevenlabs.io', '/cs-proxy/elevenlabs'],
+    ['https://api.evolink.ai', '/cs-proxy/evolink'],
+    ['https://api.piapi.ai', '/cs-proxy/piapi'],
   ];
+  if (CS_SUPABASE_URL && CS_SUPABASE_URL.indexOf('http') === 0) {
+    CS_PROXY_MAP.push([CS_SUPABASE_URL.replace(/\\/+$/, ''), '/cs-proxy/supabase']);
+  }
   function toCsProxyUrl(u) {
     if (!u || typeof u !== 'string') return u;
     if (u.charAt(0) === '/') return u;
@@ -559,19 +572,35 @@ const BRIDGE = `
 
 function patchHtml(raw) {
   let patched = raw;
+  const supabaseUrl = String(process.env.SUPABASE_URL || '').trim().replace(/\/+$/, '');
 
   // Remove a dependência visual/funcional de chaves no navegador. As chaves
   // reais ficam exclusivamente no .env do VPS e são aplicadas pelo /cs-proxy.
   const serverKeysLiteral =
-    '{anthropic:"sk-ant-server-side",fal:"server-side",kie:"server-side",google:"server-side",laozhang:"server-side",lzSora:"server-side",lzImg:"server-side",lzNano:"server-side",proxy:"",vidbk:"",imgbk:"",ugcbk:"",fashn:"server-side"}';
+    '{anthropic:"sk-ant-server-side",fal:"server-side",kie:"server-side",google:"server-side",laozhang:"server-side",lzSora:"server-side",lzImg:"server-side",lzNano:"server-side",piapi:"server-side",evolink:"server-side",sbUrl:' +
+    JSON.stringify(supabaseUrl) +
+    ',sbKey:"server-side",sbBucket:"clipseller",proxy:"",vidbk:"",imgbk:"",ugcbk:"",fashn:"server-side"}';
 
+  // let → var: o bridge precisa mutar o mesmo binding via window.KEYS / window.credits
+  patched = patched.replace(/\blet\s+KEYS\s*=/, 'var KEYS=');
   patched = patched.replace(
-    'let KEYS={anthropic:"",fal:"",kie:"",google:"",laozhang:"",lzSora:"",lzImg:"",lzNano:"",proxy:"http://localhost:8787",vidbk:"",imgbk:"",ugcbk:"",fashn:""};',
-    `let KEYS=${serverKeysLiteral};`,
+    /\blet\s+credits\s*=\s*(\d+)\s*,\s*theme\s*=\s*('[^']*')\s*;/,
+    'var credits=$1; var theme=$2;',
+  );
+
+  // v46.3 KEYS (com piapi/evolink/supabase)
+  patched = patched.replace(
+    /var KEYS=\{anthropic:"",fal:"",kie:"",google:"",laozhang:"",lzSora:"",lzImg:"",lzNano:"",piapi:"",evolink:"",sbUrl:"",sbKey:"",sbBucket:"clipseller",proxy:"http:\/\/localhost:8787",vidbk:"",imgbk:"",ugcbk:"",fashn:""\};/,
+    `var KEYS=${serverKeysLiteral};`,
+  );
+  // v43 e anteriores
+  patched = patched.replace(
+    'var KEYS={anthropic:"",fal:"",kie:"",google:"",laozhang:"",lzSora:"",lzImg:"",lzNano:"",proxy:"http://localhost:8787",vidbk:"",imgbk:"",ugcbk:"",fashn:""};',
+    `var KEYS=${serverKeysLiteral};`,
   );
   patched = patched.replace(
-    'let KEYS={anthropic:"",fal:"",kie:"",google:"",laozhang:"",lzSora:"",lzImg:"",lzNano:"",proxy:"",vidbk:"",imgbk:"",ugcbk:"",fashn:""};',
-    `let KEYS=${serverKeysLiteral};`,
+    'var KEYS={anthropic:"",fal:"",kie:"",google:"",laozhang:"",lzSora:"",lzImg:"",lzNano:"",proxy:"",vidbk:"",imgbk:"",ugcbk:"",fashn:""};',
+    `var KEYS=${serverKeysLiteral};`,
   );
   patched = patched.replace(
     'const def={anthropic:"",fal:"",kie:"",google:"",laozhang:"",lzSora:"",lzImg:"",lzNano:"",proxy:"http://localhost:8787",vidbk:"",imgbk:"",ugcbk:"",fashn:""};',
@@ -581,6 +610,27 @@ function patchHtml(raw) {
     'const def={anthropic:"",fal:"",kie:"",google:"",laozhang:"",lzSora:"",lzImg:"",lzNano:"",proxy:"",vidbk:"",imgbk:"",ugcbk:"",fashn:""};',
     `const def=${serverKeysLiteral};`,
   );
+
+  // URLs hardcoded → proxies same-origin (ordem: hosts mais específicos primeiro)
+  const URL_REWRITES = [
+    [/https:\/\/kieai\.redpandaai\.co\/api/g, '/cs-proxy/kieupload'],
+    [/https:\/\/api\.kie\.ai/g, '/cs-proxy/kie'],
+    [/https:\/\/api\.laozhang\.ai/g, '/cs-proxy/laozhang'],
+    [/https:\/\/queue\.fal\.run/g, '/cs-proxy/falqueue'],
+    [/https:\/\/fal\.run/g, '/cs-proxy/fal'],
+    [/https:\/\/api\.fashn\.ai/g, '/cs-proxy/fashn'],
+    [/https:\/\/generativelanguage\.googleapis\.com/g, '/cs-proxy/google'],
+    [/https:\/\/api\.anthropic\.com/g, '/cs-proxy/anthropic'],
+    [/https:\/\/api\.evolink\.ai/g, '/cs-proxy/evolink'],
+    [/https:\/\/api\.piapi\.ai/g, '/cs-proxy/piapi'],
+  ];
+  if (supabaseUrl) {
+    const escaped = supabaseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    URL_REWRITES.push([new RegExp(escaped, 'g'), '/cs-proxy/supabase']);
+  }
+  for (const [re, replacement] of URL_REWRITES) {
+    patched = patched.replace(re, replacement);
+  }
   patched = patched.replace(
     'function chargeCreditsBackend(amount,label){/* DEV: conectar ao DB de usuários e debitar aqui (amount em créditos, label = ação) */return true;}',
     'function chargeCreditsBackend(amount,label){return true;}',
@@ -612,7 +662,7 @@ function patchHtml(raw) {
     /<button class="kb" onclick="showGate\(\)">[\s\S]*?Chaves<\/button>/,
     '',
   );
-  patched = patched.replace('let credits=500, theme=\'light\';', 'let credits=0, theme=\'light\';');
+  patched = patched.replace(/var credits=500;\s*var theme='light';/, "var credits=0; var theme='light';");
   patched = patched.replace(
     'function topUp(){credits+=100;updateCred();save();}',
     "function topUp(){if(window.showCreditsPanel)return window.showCreditsPanel();try{window.top.location.href='/credits.html';}catch(_){location.href='/credits.html';}}",
@@ -655,10 +705,11 @@ function setImgMode`,
   );
 
   // Garante que o BRIDGE rode após o HTML legado declarar suas funções/variáveis.
-  if (raw.includes('</body>')) {
-    return patched.replace('</body>', BRIDGE + '</body>');
+  const bridge = BRIDGE.replace('__CS_SUPABASE_URL__', supabaseUrl || '');
+  if (patched.includes('</body>')) {
+    return patched.replace('</body>', bridge + '</body>');
   }
-  return patched + BRIDGE;
+  return patched + bridge;
 }
 
 export const clipsellerHtmlRouter = Router();
