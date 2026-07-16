@@ -38,17 +38,51 @@ function pick(obj, paths) {
       if (cur == null || typeof cur !== 'object') { cur = undefined; break; }
       cur = cur[key];
     }
+    // Aceita 0 (sandbox Hotmart manda product.id = 0)
     if (cur !== undefined && cur !== null && String(cur).trim() !== '') return cur;
+    if (cur === 0 || cur === '0') return cur;
   }
   return undefined;
 }
 
+function asId(value) {
+  if (value === undefined || value === null) return '';
+  return String(value).trim();
+}
+
+/** IDs típicos do botão "Testar" da Hotmart (não são o produto real). */
+function isHotmartSandboxProductId(productId) {
+  const id = asId(productId);
+  return !id || id === '0' || id === '00000' || id === '123456';
+}
+
+function logPayloadPreview(body) {
+  try {
+    const raw = JSON.stringify(body ?? null);
+    const truncated = raw.length > 4000 ? `${raw.slice(0, 4000)}…[truncated ${raw.length}]` : raw;
+    const topKeys = body && typeof body === 'object' ? Object.keys(body) : [];
+    const dataKeys = body?.data && typeof body.data === 'object' ? Object.keys(body.data) : [];
+    const productKeys = body?.data?.product && typeof body.data.product === 'object'
+      ? Object.keys(body.data.product)
+      : [];
+    console.log(
+      `[hotmart] payload keys top=[${topKeys.join(',')}] data=[${dataKeys.join(',')}] `
+      + `product=[${productKeys.join(',')}] raw=${truncated}`,
+    );
+  } catch (err) {
+    console.warn('[hotmart] falha ao logar payload:', err.message);
+  }
+}
+
 function normalizeHotmart(body) {
+  // Hotmart v1 (form) às vezes manda campos no root; v2 manda em data.*
   const record = body && typeof body === 'object' ? body : {};
-  const event = String(pick(record, ['event', 'event_type', 'status', 'cms_event']) || '').toUpperCase();
-  const productId = String(pick(record, [
+  const event = asId(pick(record, ['event', 'event_type', 'cms_event'])).toUpperCase();
+  const productId = asId(pick(record, [
     'data.product.id',
     'data.product.productId',
+    'data.purchase.product.id',
+    'data.subscription.product.id',
     'data.product_id',
     'data.productId',
     'product.id',
@@ -56,49 +90,71 @@ function normalizeHotmart(body) {
     'productId',
     'prod',
     'prod_id',
-  ]) || '').trim();
-  const buyerEmail = String(pick(record, [
+    'Prod',
+  ]));
+  const buyerEmail = asId(pick(record, [
     'data.buyer.email',
     'data.customer.email',
     'data.user.email',
+    'data.subscriber.email',
     'buyer.email',
     'customer.email',
     'email',
+    'Email',
     'buyer_email',
-  ]) || '').trim().toLowerCase();
-  const buyerName = String(pick(record, [
+  ])).toLowerCase();
+  const buyerName = asId(pick(record, [
     'data.buyer.name',
     'data.customer.name',
     'data.user.name',
+    'data.subscriber.name',
     'buyer.name',
     'customer.name',
     'name',
+    'Name',
     'buyer_name',
-  ]) || '').trim();
-  const transactionId = String(pick(record, [
+  ]));
+  const transactionId = asId(pick(record, [
     'data.purchase.transaction',
     'data.purchase.transaction_id',
     'data.transaction',
     'transaction',
+    'Transaction',
     'transaction_id',
     'id',
-  ]) || '').trim();
-  const subscriberCode = String(pick(record, [
+  ]));
+  const subscriberCode = asId(pick(record, [
     'data.subscription.subscriber.code',
     'data.subscription.subscriber_code',
+    'data.subscriber.code',
     'data.subscriberCode',
     'subscriber_code',
     'subscriberCode',
-  ]) || '').trim();
-  const status = String(pick(record, [
+  ]));
+  const status = asId(pick(record, [
     'data.purchase.status',
     'data.subscription.status',
     'data.status',
     'purchase.status',
     'subscription.status',
     'status',
-  ]) || '').toUpperCase();
+    'Status',
+  ])).toUpperCase();
   return { record, event, productId, buyerEmail, buyerName, transactionId, subscriberCode, status };
+}
+
+/**
+ * Webhook da Hotmart é cadastrado por produto. No "Testar", o product.id
+ * costuma vir 0/ausente — assumimos o produto configurado no .env.
+ */
+function resolveAllowedProduct(productId, allowed) {
+  if (allowed.includes(productId)) {
+    return { ok: true, productId, assumed: false };
+  }
+  if (isHotmartSandboxProductId(productId) && allowed.length > 0) {
+    return { ok: true, productId: allowed[0], assumed: true, originalProductId: productId || '' };
+  }
+  return { ok: false, productId };
 }
 
 function shouldGrant(event, status) {
@@ -108,8 +164,9 @@ function shouldGrant(event, status) {
     'SUBSCRIPTION_APPROVED',
     'SUBSCRIPTION_RENEWAL',
   ]);
-  if (!event && ['APPROVED', 'COMPLETE', 'ACTIVE'].includes(status)) return true;
-  return grants.has(event) && (!status || ['APPROVED', 'COMPLETE', 'ACTIVE'].includes(status));
+  const okStatus = new Set(['APPROVED', 'COMPLETE', 'COMPLETED', 'ACTIVE', '']);
+  if (!event && okStatus.has(status)) return true;
+  return grants.has(event) && (!status || okStatus.has(status));
 }
 
 function shouldRevoke(event, status) {
@@ -276,7 +333,8 @@ async function retryWelcomeIfPending(email) {
 
 router.post('/hotmart', async (req, res) => {
   const receivedAt = new Date().toISOString();
-  console.log(`[hotmart] INCOMING at=${receivedAt} ip=${req.ip} ua=${req.headers['user-agent'] || '-'}`);
+  console.log(`[hotmart] INCOMING at=${receivedAt} ip=${req.ip} ua=${req.headers['user-agent'] || '-'} ct=${req.headers['content-type'] || '-'}`);
+  logPayloadPreview(req.body);
 
   if (!validateHottok(req)) {
     console.warn('[hotmart] hottok inválido');
@@ -291,10 +349,23 @@ router.post('/hotmart', async (req, res) => {
   );
 
   const allowed = configuredProductIds();
-  if (!allowed.includes(data.productId)) {
+  const productGate = resolveAllowedProduct(data.productId, allowed);
+  if (!productGate.ok) {
     console.log(`[hotmart] productId=${data.productId || 'n/a'} ignorado (allowed=${allowed.join(',')})`);
-    return res.json({ ok: true, skipped: true, reason: 'product_not_allowed', productId: data.productId });
+    return res.json({
+      ok: true,
+      skipped: true,
+      reason: 'product_not_allowed',
+      productId: data.productId,
+    });
   }
+  if (productGate.assumed) {
+    console.warn(
+      `[hotmart] product sandbox/ausente (${productGate.originalProductId || 'vazio'}) `
+      + `→ assumindo produto configurado ${productGate.productId}`,
+    );
+  }
+  data.productId = productGate.productId;
 
   const grant = shouldGrant(data.event, data.status);
   const revoke = shouldRevoke(data.event, data.status);
@@ -354,6 +425,7 @@ router.post('/hotmart', async (req, res) => {
         ok: true,
         action: 'grant',
         productId: data.productId,
+        assumedProduct: Boolean(productGate.assumed),
         isNew: out.isNew,
         passwordEmailSent: out.passwordEmailSent,
         user: publicUser(out.user),
