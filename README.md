@@ -1,11 +1,11 @@
 # ClipSeller standalone
 
-Aplicação **independente** do ClipSeller (estúdio de imagem/vídeo com IA) rodando em uma VPS própria — atualmente `76.13.234.226` (Hostinger), publicada em **https://clipseller.com.br**.
+Aplicação **independente** do ClipSeller (estúdio de imagem/vídeo com IA) rodando em VPS própria, publicada em **https://clipseller.com.br**.
 
 - Express (Node 20) + PostgreSQL local
 - Autenticação própria (e-mail + senha, esqueci minha senha) com JWT
 - E-mails transacionais via **AWS SES**
-- Mesma engine de IA do ClipSeller do Seller.IA Club (proxy server-side `/cs-proxy/*` injeta as chaves)
+- Engine de IA com proxy server-side (`/cs-proxy/*`) — chaves ficam só no servidor
 - Admin padrão criado/atualizado a cada boot via `ADMIN_EMAIL` / `ADMIN_PASSWORD`
 
 ## Estrutura
@@ -62,7 +62,7 @@ npm run seed-admin
 npm start            # http://localhost:4000
 ```
 
-## Deploy no VPS (76.13.234.226 — Hostinger Ubuntu 24.04)
+## Deploy no VPS
 
 A primeira instalação roda o **bootstrap**, que instala dependências (Node 20, Postgres 16, nginx, certbot), cria o usuário `clipseller`, banco, .env aleatório, systemd e nginx.
 
@@ -81,37 +81,30 @@ Atualizações futuras:
 bash /opt/clipseller-standalone/deploy/update.sh
 ```
 
-## DNS na Hostinger (clipseller.com.br)
+## DNS (clipseller.com.br)
 
-No painel `Manage DNS records` do domínio (clipseller.com.br), troque os registros para apontarem ao VPS:
+No painel DNS do domínio, aponte os registros `A` de `@` e `www` para o IP da VPS (TTL baixo, ex.: 300). Remova registros antigos que apontem para outro host.
 
-| Tipo | Nome | Valor | TTL |
-|---|---|---|---|
-| `A` | `@` | `76.13.234.226` | 300 |
-| `A` | `www` | `76.13.234.226` | 300 |
-
-> Os registros existentes (`A @ 2.57.91.91` e `CNAME www clipseller.com.br`) **devem ser apagados/substituídos**.
-
-Após propagar (`dig +short clipseller.com.br` deve devolver `76.13.234.226`), emita o SSL no VPS:
+Após propagar (`dig +short clipseller.com.br` deve devolver o IP da VPS), emita o SSL:
 
 ```bash
 certbot --nginx -d clipseller.com.br -d www.clipseller.com.br \
-  --email acesso@selleriaclub.com --agree-tos --redirect -n
+  --email SEU_EMAIL --agree-tos --redirect -n
 ```
 
 ## AWS SES
 
-A aplicação usa as **mesmas credenciais AWS** que o Seller.IA já usa (mesmo IAM user, mesma região `us-east-1`, mesmo `MAIL_FROM=no-reply@selleriaclub.com.br`). Como o domínio `selleriaclub.com.br` já está verificado no SES, nada precisa ser feito do lado AWS para emitir os e-mails do ClipSeller.
+Configure `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` e `MAIL_FROM` no `.env`. O domínio do remetente precisa estar verificado no SES (com DKIM nos DNS, se ainda não estiver).
 
 Se quiser usar `no-reply@clipseller.com.br` como remetente:
 1. Adicione o domínio `clipseller.com.br` no SES (Identities → Create identity → Domain).
-2. Cadastre os 3 CNAMEs DKIM gerados pelo SES nos DNS da Hostinger.
+2. Cadastre os CNAMEs DKIM gerados pelo SES nos DNS do domínio.
 3. Saia do sandbox SES (se ainda estiver).
 4. Atualize `MAIL_FROM=no-reply@clipseller.com.br` no `.env` e reinicie.
 
 ## Fluxo de criação de usuário
 
-Como ainda não há produto Hotmart vinculado, o cadastro acontece **manualmente pelo admin**:
+O cadastro pode ser feito **manualmente pelo admin**:
 
 ```bash
 # Logado como admin
@@ -121,7 +114,7 @@ curl -X POST https://clipseller.com.br/api/admin/users \
   -d '{"email":"cliente@dominio.com","name":"Cliente","sendWelcome":true,"hasAccess":true}'
 ```
 
-O comprador recebe um e-mail (`Bem-vindo ao ClipSeller!`) com o link de definição de senha (`/set-password.html?email=...&token=...`). Quando o produto Hotmart existir, basta plugar a chamada do webhook nesta mesma função `createUser` + `sendWelcomeEmail`.
+O comprador recebe um e-mail (`Bem-vindo ao ClipSeller!`) com o link de definição de senha (`/set-password.html?email=...&token=...`). Webhooks de pagamento (ex.: Hotmart) podem chamar a mesma função `createUser` + `sendWelcomeEmail`.
 
 ## Variáveis principais (`.env`)
 
@@ -130,7 +123,7 @@ O comprador recebe um e-mail (`Bem-vindo ao ClipSeller!`) com o link de definiç
 - `AWS_REGION` / `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` — credenciais SES
 - `MAIL_FROM`, `MAIL_FROM_NAME`, `SES_CONFIGURATION_SET` (opcional)
 - `ADMIN_EMAIL` / `ADMIN_PASSWORD` — admin recriado/atualizado a cada boot (troque a senha no primeiro login)
-- `ANTHROPIC_API_KEY`, `FAL_API_KEY`, `REPLICATE_API_KEY`, `GEMINI_API_KEY`, `LAOZHANG_*`, `KIE_API_KEY`, etc. — repassadas pelo `/cs-proxy/*`. Nenhuma é exposta no navegador.
+- Chaves de provedores de IA — configuradas no `.env` e injetadas só pelo `/cs-proxy/*` (nunca expostas no navegador). Veja `.env.example`.
 
 ## Operação no VPS
 
